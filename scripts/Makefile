@@ -19,9 +19,9 @@ createmigrate:
 	migrate create -ext sql -dir ../migrations/mysql -seq init_schema
 
 migrateup:
-	@echo "Migrating up with database URL: $(MYSQL_URL)"
+	@echo "Migrating up with database URL: $(DB_URL)"
 	@echo "DATABASE_NAME: $(DATABASE_NAME)"
-	migrate -path ../migrations/mysql -database "$(MYSQL_URL)" -verbose up
+	migrate -path ../migrations/mysql -database "$(DB_URL)" -verbose up
 
 migratedown:
 	@echo "Migrating down with database URL: $(MYSQL_URL)"
