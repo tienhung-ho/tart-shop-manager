@@ -1,1 +1,0 @@
-deb https://packagecloud.io/golang-migrate/migrate/ubuntu/ jammy main /etc/apt/sources.list.d/migrate.list
