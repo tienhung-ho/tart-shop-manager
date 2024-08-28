@@ -4,10 +4,10 @@ import (
 	"context"
 	"tart-shop-manager/internal/common"
 	commonrecover "tart-shop-manager/internal/common/recover"
-	accountmodel "tart-shop-manager/internal/entity/model/account"
+	"tart-shop-manager/internal/entity/model/sql/account"
 )
 
-func (s *mysqlAccount) GetAccount(ctx context.Context, cond map[string]interface{}, morekyes ...string) (*accountmodel.Account, error) {
+func (s *mysqlAccount) GetAccount(ctx context.Context, cond map[string]interface{}, morekeys ...string) (*accountmodel.Account, error) {
 
 	db := s.db
 

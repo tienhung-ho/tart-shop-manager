@@ -1,6 +1,9 @@
 package accountmodel
 
-import "tart-shop-manager/internal/common"
+import (
+	"tart-shop-manager/internal/common"
+	accountrdbmodel "tart-shop-manager/internal/entity/model/redis"
+)
 
 const (
 	EntityName = "Account"
@@ -22,8 +25,8 @@ func (Account) TableName() string {
 	return "Account"
 }
 
-func (a Account) ToCreateAccount() *CreateAccount {
-	return &CreateAccount{
+func (a Account) ToCreateAccount() *accountrdbmodel.CreateAccountRdb {
+	return &accountrdbmodel.CreateAccountRdb{
 		AccountID: a.AccountID,
 		RoleID:    a.RoleID,
 		Phone:     a.Phone,

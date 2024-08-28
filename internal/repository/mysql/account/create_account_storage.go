@@ -5,7 +5,7 @@ import (
 	"log"
 	"tart-shop-manager/internal/common"
 	commonrecover "tart-shop-manager/internal/common/recover"
-	accountmodel "tart-shop-manager/internal/entity/model/account"
+	"tart-shop-manager/internal/entity/model/sql/account"
 )
 
 func (s *mysqlAccount) CreateAccount(ctx context.Context, data *accountmodel.CreateAccount, morekeys ...string) (uint64, error) {
