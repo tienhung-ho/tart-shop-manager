@@ -6,8 +6,8 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"tart-shop-manager/internal/common"
-	accountmodel "tart-shop-manager/internal/entity/model/account"
-	accountstorage "tart-shop-manager/internal/repository/account"
+	"tart-shop-manager/internal/entity/model/sql/account"
+	"tart-shop-manager/internal/repository/mysql/account"
 	accountbusiness "tart-shop-manager/internal/service/account"
 	validation "tart-shop-manager/internal/validate"
 )

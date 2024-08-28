@@ -17,7 +17,7 @@ const (
 
 func (s *Status) Scan(value interface{}) error {
 	if value == nil {
-		*s = "" // Hoặc gán giá trị mặc định nào đó
+		*s = StatusPending
 		return nil
 	}
 

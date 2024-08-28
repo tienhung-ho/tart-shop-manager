@@ -14,7 +14,7 @@ func NewRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
 	{
 		account := v1.Group("/account")
 		{
-			accountv1.AccountRouter(account, db)
+			accountv1.AccountRouter(account, db, rdb)
 		}
 	}
 	return r
