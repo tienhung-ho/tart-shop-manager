@@ -21,3 +21,23 @@ type Account struct {
 func (Account) TableName() string {
 	return "Account"
 }
+
+func (a Account) ToCreateAccount() *CreateAccount {
+	return &CreateAccount{
+		AccountID: a.AccountID,
+		RoleID:    a.RoleID,
+		Phone:     a.Phone,
+		Fullname:  a.Fullname,
+		AvatarURL: a.AvatarURL,
+		Password:  a.Password,
+		Email:     a.Email,
+		Gender:    a.Gender,
+		CommonFields: &common.CommonFields{
+			CreatedAt: a.CreatedAt,
+			UpdatedAt: a.UpdatedAt,
+			Status:    a.Status,
+			CreatedBy: a.CreatedBy,
+			UpdatedBy: a.UpdatedBy,
+		},
+	}
+}
