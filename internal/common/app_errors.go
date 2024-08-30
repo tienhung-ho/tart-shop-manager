@@ -88,9 +88,15 @@ func ErrCannotUpdateEntity(entity string, err error) *appError {
 		fmt.Sprintf("ErrCannotUpdate%s", entity), entity)
 }
 
-func ErrEmailOrPasswordInvalid(entity string, err error) *appError {
+func ErrEmailInvalid(entity string, err error) *appError {
 	return NewErrorResponse(err,
-		fmt.Sprintf("Cannot login, wrong password or email %s", strings.ToLower(entity)),
+		fmt.Sprintf("Cannot login, wrong email %s", strings.ToLower(entity)),
+		fmt.Sprintf("ErrCannotLogin%s", entity), entity)
+}
+
+func ErrPasswordInvalid(entity string, err error) *appError {
+	return NewErrorResponse(err,
+		fmt.Sprintf("Cannot login, wrong password %s", strings.ToLower(entity)),
 		fmt.Sprintf("ErrCannotLogin%s", entity), entity)
 }
 

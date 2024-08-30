@@ -17,12 +17,14 @@ func SimpleSuccesResponse(data interface{}) *successRes {
 type userResponesToken struct {
 	AccessToken  interface{} `json:"accesstoken"`
 	RefreshToken interface{} `json:"refreshtoken"`
+	Data         interface{} `json:"data"`
 }
 
-func NewReponseUserToken(accessToken, refreshToken string) *userResponesToken {
+func NewReponseUserToken(accessToken, refreshToken string, data interface{}) *userResponesToken {
 	return &userResponesToken{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
+		Data:         data,
 	}
 }
 

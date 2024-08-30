@@ -44,3 +44,19 @@ func (a Account) ToCreateAccount() *accountrdbmodel.CreateAccountRdb {
 		},
 	}
 }
+
+func (a Account) ToSimpleAccount() *Account {
+	return &Account{
+		AccountID: a.AccountID,
+		RoleID:    a.RoleID,
+		Phone:     a.Phone,
+		Fullname:  a.Fullname,
+		AvatarURL: a.AvatarURL,
+		//Password:  a.Password,
+		Email:  a.Email,
+		Gender: a.Gender,
+		CommonFields: &common.CommonFields{
+			Status: a.Status,
+		},
+	}
+}
