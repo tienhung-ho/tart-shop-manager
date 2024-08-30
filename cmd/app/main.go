@@ -14,7 +14,7 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	db, err := NewDB()
+	db, err := newDB()
 	if err != nil {
 		log.Fatalf("Failed to connect database: %v", err)
 	}

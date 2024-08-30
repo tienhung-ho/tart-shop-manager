@@ -170,3 +170,9 @@ func ErrValidation(validationErrors validator.ValidationErrors) *appError {
 
 	return NewErrorResponse(nil, "Validation failed", strings.Join(errMsgs, "; "), "VALIDATION_ERROR")
 }
+
+func ErrCanNotBindEntity(entity string, err error) *appError {
+	return NewErrorResponse(err,
+		fmt.Sprintf("Cannot not bind %s or data is empty", strings.ToLower(entity)),
+		fmt.Sprintf("ErrCannotNotBindData%s", entity), entity)
+}

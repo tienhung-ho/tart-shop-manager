@@ -11,4 +11,5 @@ func AccountRouter(acc *gin.RouterGroup, db *gorm.DB, rdb *redis.Client) {
 	acc.GET("/", func(c *gin.Context) {})
 	acc.GET("/:id", accounthandler.GetAccountHandler(db, rdb))
 	acc.POST("/", accounthandler.CreateAccountHandler(db))
+	acc.PATCH("/:id", accounthandler.UpdateAccountHandler(db, rdb))
 }

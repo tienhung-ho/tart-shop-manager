@@ -20,7 +20,7 @@ func (s *mysqlAccount) CreateAccount(ctx context.Context, data *accountmodel.Cre
 
 	if err := db.WithContext(ctx).Create(&data).Error; err != nil {
 		db.Rollback()
-		return 0, common.ErrDB(err)
+		return 0, err
 	}
 
 	if err := db.Commit().Error; err != nil {

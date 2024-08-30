@@ -9,7 +9,14 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"os"
+	"sync"
 	"time"
+)
+
+// Singleton
+var (
+	db   *gorm.DB
+	once sync.Once
 )
 
 func redisConnection() *redis.Client {
@@ -32,30 +39,34 @@ func redisConnection() *redis.Client {
 	return client
 }
 
-func NewDB() (*gorm.DB, error) {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
-	}
-	dsn := os.Getenv("MYSQL_URL")
+func newDB() (*gorm.DB, error) {
+	//Singleton
+	once.Do(func() {
+		var err error
+		if err := godotenv.Load(); err != nil {
+			log.Fatal("Error loading .env file")
+		}
+		dsn := os.Getenv("MYSQL_URL")
 
-	if dsn == "" {
-		log.Fatal("Environment variable DB_URL is not set")
-	}
+		if dsn == "" {
+			log.Fatal("Environment variable DB_URL is not set")
+		}
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		panic("failed to connect database")
-	}
+		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		if err != nil {
+			panic("failed to connect database")
+		}
 
-	sqlDB, err := db.DB()
-	if err != nil {
-		return nil, err
-	}
+		sqlDB, err := db.DB()
+		if err != nil {
+			log.Fatalf("failed to get database connection pool: %v", err)
+		}
 
-	// Cấu hình connection pool chung
-	sqlDB.SetMaxOpenConns(100)
-	sqlDB.SetMaxIdleConns(10)
-	sqlDB.SetConnMaxLifetime(40 * time.Minute)
+		// Cấu hình connection pool chung
+		sqlDB.SetMaxOpenConns(100)
+		sqlDB.SetMaxIdleConns(10)
+		sqlDB.SetConnMaxLifetime(40 * time.Minute)
 
+	})
 	return db, nil
 }
