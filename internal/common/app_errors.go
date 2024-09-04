@@ -124,9 +124,15 @@ func ErrNoPermission(entity string, err error) *appError {
 		"ErrNoPermission", entity)
 }
 
-var RecordNotFound = errors.New("record not found!")
+var RecordNotFound = errors.New("record not found")
 
 func ErrNotFoundEntity(entity string, err error) *appError {
+	return NewErrorResponse(err,
+		fmt.Sprintf("Cannot not found %s", strings.ToLower(entity)),
+		fmt.Sprintf("ErrCannotNotFound%s", entity), entity)
+}
+
+func ErrNotFoundToken(entity string, err error) *appError {
 	return NewErrorResponse(err,
 		fmt.Sprintf("Cannot not found %s", strings.ToLower(entity)),
 		fmt.Sprintf("ErrCannotNotFound%s", entity), entity)

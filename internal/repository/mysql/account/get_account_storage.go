@@ -2,7 +2,6 @@ package accountstorage
 
 import (
 	"context"
-	"tart-shop-manager/internal/common"
 	commonrecover "tart-shop-manager/internal/common/recover"
 	"tart-shop-manager/internal/entity/model/sql/account"
 )
@@ -15,7 +14,7 @@ func (s *mysqlAccount) GetAccount(ctx context.Context, cond map[string]interface
 	var record accountmodel.Account
 
 	if err := db.WithContext(ctx).Where(cond).First(&record).Error; err != nil {
-		return nil, common.ErrDB(err)
+		return nil, err
 	}
 
 	return &record, nil

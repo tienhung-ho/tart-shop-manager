@@ -6,12 +6,13 @@ import (
 	"gorm.io/gorm"
 	accounthandler "tart-shop-manager/api/handler/account"
 	authhandler "tart-shop-manager/api/handler/auth"
+	authmiddleware "tart-shop-manager/api/middleware/auth"
 )
 
 func AccountRouter(acc *gin.RouterGroup, db *gorm.DB, rdb *redis.Client) {
-	acc.GET("/", func(c *gin.Context) {})
 	acc.GET("/:id", accounthandler.GetAccountHandler(db, rdb))
 	acc.POST("/login", authhandler.LoginHandler(db))
 	acc.POST("/", accounthandler.CreateAccountHandler(db))
-	acc.PATCH("/:id", accounthandler.UpdateAccountHandler(db, rdb))
+	acc.PATCH("/:id", authmiddleware.AuthRequire(), accounthandler.UpdateAccountHandler(db, rdb))
+	acc.DELETE("/:id", accounthandler.DeleteAccountHandler(db, rdb))
 }

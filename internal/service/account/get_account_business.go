@@ -2,6 +2,8 @@ package accountbusiness
 
 import (
 	"context"
+	"errors"
+	"gorm.io/gorm"
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
@@ -45,6 +47,12 @@ func (biz *getAccountBusiness) GetAccount(ctx context.Context, cond map[string]i
 
 	record, err = biz.store.GetAccount(ctx, cond, morekeys...)
 	if err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+
+			return nil, common.ErrNotFoundEntity(accountmodel.EntityName, err)
+		}
+
 		return nil, common.ErrCannotGetEntity(accountmodel.EntityName, err)
 	}
 
