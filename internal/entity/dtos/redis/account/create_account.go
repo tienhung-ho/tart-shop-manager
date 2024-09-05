@@ -1,4 +1,4 @@
-package accountrdbmodel
+package account
 
 import (
 	"tart-shop-manager/internal/common"
