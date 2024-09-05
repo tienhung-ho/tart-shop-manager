@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 	"tart-shop-manager/internal/common"
-	accountmodel "tart-shop-manager/internal/entity/model/sql/account"
+	accountmodel "tart-shop-manager/internal/entity/dtos/sql/account"
 	hashutil "tart-shop-manager/internal/util/hash"
 	tokenutil "tart-shop-manager/internal/util/token"
 	"time"

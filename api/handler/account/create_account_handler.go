@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"tart-shop-manager/internal/common"
-	"tart-shop-manager/internal/entity/model/sql/account"
+	"tart-shop-manager/internal/entity/dtos/sql/account"
 	"tart-shop-manager/internal/repository/mysql/account"
 	accountbusiness "tart-shop-manager/internal/service/account"
 	validation "tart-shop-manager/internal/validate"

@@ -8,7 +8,7 @@ import (
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
-	"tart-shop-manager/internal/entity/model/sql/account"
+	"tart-shop-manager/internal/entity/dtos/sql/account"
 	cacheutil "tart-shop-manager/internal/util/cache"
 )
 

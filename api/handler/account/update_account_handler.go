@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"tart-shop-manager/internal/common"
-	accountmodel "tart-shop-manager/internal/entity/model/sql/account"
+	accountmodel "tart-shop-manager/internal/entity/dtos/sql/account"
 	accountstorage "tart-shop-manager/internal/repository/mysql/account"
 	accountrdbstorage "tart-shop-manager/internal/repository/redis/account"
 	accountbusiness "tart-shop-manager/internal/service/account"

@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"tart-shop-manager/internal/common"
-	accountrdbmodel "tart-shop-manager/internal/entity/model/redis"
-	accountmodel "tart-shop-manager/internal/entity/model/sql/account"
+	accountrdbmodel "tart-shop-manager/internal/entity/dtos/redis"
+	accountmodel "tart-shop-manager/internal/entity/dtos/sql/account"
 	"time"
 )
 

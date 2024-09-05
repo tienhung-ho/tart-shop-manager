@@ -3,7 +3,7 @@ package accountstorage
 import (
 	"context"
 	commonrecover "tart-shop-manager/internal/common/recover"
-	"tart-shop-manager/internal/entity/model/sql/account"
+	"tart-shop-manager/internal/entity/dtos/sql/account"
 )
 
 func (s *mysqlAccount) GetAccount(ctx context.Context, cond map[string]interface{}, morekeys ...string) (*accountmodel.Account, error) {

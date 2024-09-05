@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
-	authmodel "tart-shop-manager/internal/entity/model/auth"
+	authmodel "tart-shop-manager/internal/entity/dtos/auth"
 	"time"
 )
 

@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm/clause"
 	"tart-shop-manager/internal/common"
 	commonrecover "tart-shop-manager/internal/common/recover"
-	accountmodel "tart-shop-manager/internal/entity/model/sql/account"
+	accountmodel "tart-shop-manager/internal/entity/dtos/sql/account"
 )
 
 func (s *mysqlAccount) UpdateAccount(ctx context.Context, cond map[string]interface{}, account *accountmodel.UpdateAccount, morekeys ...string) (*accountmodel.Account, error) {

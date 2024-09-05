@@ -6,14 +6,16 @@ import (
 	"github.com/go-playground/validator/v10"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type appError struct {
-	StatusCode int    `json:"status_code"`
-	RootErr    error  `json:"-"`
-	Message    string `json:"message"`
-	Log        string `json:"log"`
-	Key        string `json:"error_key"`
+	StatusCode int       `json:"status_code"`
+	RootErr    error     `json:"-"`
+	Message    string    `json:"message"`
+	Log        string    `json:"log"`
+	Key        string    `json:"error_key"`
+	Timestamp  time.Time `json:"timestamp"`
 }
 
 func NewFullErrorResponse(statusCode int, root error, msg, log, key string) *appError {
@@ -23,6 +25,7 @@ func NewFullErrorResponse(statusCode int, root error, msg, log, key string) *app
 		Message:    msg,
 		Log:        log,
 		Key:        key,
+		Timestamp:  time.Now(), // Add the current time
 	}
 }
 
@@ -33,6 +36,7 @@ func NewErrorResponse(root error, msg, log, key string) *appError {
 		Message:    msg,
 		Log:        log,
 		Key:        key,
+		Timestamp:  time.Now(), // Add the current time
 	}
 }
 
@@ -43,9 +47,9 @@ func NewUnauthorized(root error, msg, log, key string) *appError {
 		Message:    msg,
 		Log:        log,
 		Key:        key,
+		Timestamp:  time.Now(), // Add the current time
 	}
 }
-
 func ErrDB(err error) *appError {
 	return NewFullErrorResponse(http.StatusInternalServerError, err, "something went wrong with DB", err.Error(), "DB_ERROR")
 }

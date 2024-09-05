@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 	"tart-shop-manager/internal/common"
-	accountmodel "tart-shop-manager/internal/entity/model/sql/account"
+	accountmodel "tart-shop-manager/internal/entity/dtos/sql/account"
 	accountstorage "tart-shop-manager/internal/repository/mysql/account"
 	authbusiness "tart-shop-manager/internal/service/auth"
 )
