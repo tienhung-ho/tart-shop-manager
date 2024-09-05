@@ -2,7 +2,7 @@ package accountmodel
 
 import (
 	"tart-shop-manager/internal/common"
-	accountrdbmodel "tart-shop-manager/internal/entity/model/redis"
+	accountrdbmodel "tart-shop-manager/internal/entity/dtos/redis"
 )
 
 const (
