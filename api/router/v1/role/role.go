@@ -9,4 +9,5 @@ import (
 
 func RoleRouter(role *gin.RouterGroup, db *gorm.DB, rdb *redis.Client) {
 	role.GET("/:id", rolehandler.GetRoleHandler(db, rdb))
+	role.POST("/", rolehandler.CreateRoleHandler(db))
 }
