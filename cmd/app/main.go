@@ -5,7 +5,9 @@ import (
 	"github.com/joho/godotenv"
 	"log"
 	"os"
+	"path/filepath"
 	routerv1 "tart-shop-manager/api/router/v1"
+	policiesutil "tart-shop-manager/internal/util/policies"
 )
 
 func main() {
@@ -22,7 +24,19 @@ func main() {
 	fmt.Println("Database connection successful", db)
 	rdb := redisConnection()
 	fmt.Println("Redis connection successful", rdb)
-	// Thực hiện các thao tác với cơ sở dữ liệu ở đây
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Failed to get current working directory: %v", err)
+	}
+
+	// // Define model and policy paths
+	modelPath := filepath.Join(cwd, "config/casbin", "rbac_model.conf")
+
+	_, err = policiesutil.InitEnforcer(db, modelPath)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	port := os.Getenv("PORT")
 	r := routerv1.NewRouter(db, rdb)

@@ -11,16 +11,19 @@ CREATE TABLE `Role` (
 );
 
 CREATE TABLE `Permission` (
-                              permission_id INT AUTO_INCREMENT PRIMARY KEY,
-                              name VARCHAR(255) NOT NULL UNIQUE,
-                              description TEXT,
-                              status ENUM('Pending', 'Active', 'Inactive') DEFAULT 'Pending',
-                              `created_by` CHAR(30) DEFAULT NULL,
-                              `updated_by` CHAR(30) DEFAULT NULL,
-                              `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                              `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                              `deleted_at` DATETIME DEFAULT NULL   -- Thêm trường deleted_at cho Soft Delete
+                            permission_id INT AUTO_INCREMENT PRIMARY KEY,
+                            name VARCHAR(255) NOT NULL UNIQUE,
+                            object VARCHAR(255) NOT NULL,  -- Thêm cột object
+                            action VARCHAR(50) NOT NULL,   -- Thêm cột action
+                            description TEXT,
+                            status ENUM('Pending', 'Active', 'Inactive') DEFAULT 'Pending',
+                            created_by CHAR(30) DEFAULT NULL,
+                            updated_by CHAR(30) DEFAULT NULL,
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                            deleted_at DATETIME DEFAULT NULL  -- Thêm trường deleted_at cho Soft Delete
 );
+
 
 CREATE TABLE `role_permissions` (
                                     role_id INT,
