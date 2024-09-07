@@ -5,13 +5,18 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
+	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"tart-shop-manager/internal/common"
 	accountmodel "tart-shop-manager/internal/entity/dtos/sql/account"
 	accountstorage "tart-shop-manager/internal/repository/mysql/account"
+	rolestorage "tart-shop-manager/internal/repository/mysql/role"
 	accountrdbstorage "tart-shop-manager/internal/repository/redis/account"
 	accountbusiness "tart-shop-manager/internal/service/account"
+	casbinutil "tart-shop-manager/internal/util/policies"
 	validation "tart-shop-manager/internal/validate"
 )
 
@@ -50,9 +55,26 @@ func UpdateAccountHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 			return
 		}
 
+		cwd, err := os.Getwd()
+		if err != nil {
+			log.Fatalf("Failed to get current working directory: %v", err)
+		}
+
+		// // Define model and policy paths
+		modelPath := filepath.Join(cwd, "config/casbin", "rbac_model.conf")
+
+		// Initialize Casbin Enforcers
+		enforcer, err := casbinutil.InitEnforcer(db, modelPath)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, common.ErrInternal(err))
+			return
+		}
+
 		store := accountstorage.NewMySQLAccount(db)
 		cache := accountrdbstorage.NewRdbStorage(rdb)
-		biz := accountbusiness.NewUpdateAccount(store, cache)
+		roleStore := rolestorage.NewMySQLRole(db)
+		auth := casbinutil.NewCasbinAuthorization(enforcer)
+		biz := accountbusiness.NewUpdateAccount(store, roleStore, cache, auth)
 
 		updatedRecord, err := biz.UpdateAccount(c.Request.Context(), map[string]interface{}{"account_id": id}, &data)
 

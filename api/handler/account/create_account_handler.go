@@ -8,7 +8,9 @@ import (
 	"tart-shop-manager/internal/common"
 	"tart-shop-manager/internal/entity/dtos/sql/account"
 	"tart-shop-manager/internal/repository/mysql/account"
+	rolestorage "tart-shop-manager/internal/repository/mysql/role"
 	accountbusiness "tart-shop-manager/internal/service/account"
+	casbinutil "tart-shop-manager/internal/util/policies"
 	validation "tart-shop-manager/internal/validate"
 )
 
@@ -41,8 +43,13 @@ func CreateAccountHandler(db *gorm.DB) func(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 			return
 		}
+
+		enforcer := casbinutil.GetEnforcer()
+
 		store := accountstorage.NewMySQLAccount(db)
-		biz := accountbusiness.NewCreateAccountbiz(store)
+		roleStore := rolestorage.NewMySQLRole(db)
+		auth := casbinutil.NewCasbinAuthorization(enforcer)
+		biz := accountbusiness.NewCreateAccountbiz(store, roleStore, auth)
 
 		recordId, err := biz.CreateAccount(c.Request.Context(), &data)
 

@@ -8,6 +8,9 @@ import (
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
 	accountmodel "tart-shop-manager/internal/entity/dtos/sql/account"
+	rolemodel "tart-shop-manager/internal/entity/dtos/sql/role"
+	casbinbusiness "tart-shop-manager/internal/service/policies"
+	rolebusiness "tart-shop-manager/internal/service/role"
 	cacheutil "tart-shop-manager/internal/util/cache"
 	responseutil "tart-shop-manager/internal/util/response"
 )
@@ -23,12 +26,14 @@ type UpdateAccountCache interface {
 }
 
 type updateAccountBusiness struct {
-	store UpdateAccountStorage
-	cache UpdateAccountCache
+	store     UpdateAccountStorage
+	roleStore rolebusiness.GetRoleStorage
+	cache     UpdateAccountCache
+	auth      casbinbusiness.Authorization
 }
 
-func NewUpdateAccount(store UpdateAccountStorage, cache UpdateAccountCache) *updateAccountBusiness {
-	return &updateAccountBusiness{store, cache}
+func NewUpdateAccount(store UpdateAccountStorage, roleStore rolebusiness.GetRoleStorage, cache UpdateAccountCache, authorization casbinbusiness.Authorization) *updateAccountBusiness {
+	return &updateAccountBusiness{store, roleStore, cache, authorization}
 }
 
 func (biz *updateAccountBusiness) UpdateAccount(ctx context.Context, cond map[string]interface{}, account *accountmodel.UpdateAccount, morekeys ...string) (*accountmodel.Account, error) {
@@ -60,6 +65,24 @@ func (biz *updateAccountBusiness) UpdateAccount(ctx context.Context, cond map[st
 
 	if err := biz.cache.DeleteAccount(ctx, key); err != nil {
 		return nil, common.ErrCannotUpdateEntity(accountmodel.EntityName, err)
+	}
+
+	if record.RoleID != updatedRecord.RoleID {
+		// Xóa vai trò cũ của người dùng
+		if err := biz.auth.RemoveUserFromAllRoles(ctx, record.Email); err != nil {
+			return nil, common.ErrCannotDeleteEntity("user roles", err)
+		}
+
+		role, err := biz.roleStore.GetRole(ctx, map[string]interface{}{"role_id": updatedRecord.RoleID})
+
+		if err != nil {
+			return nil, common.ErrNotFoundEntity(rolemodel.EntityName, err)
+		}
+
+		if err := biz.auth.AddUserToRole(ctx, record.Email, role.Name); err != nil {
+			return nil, common.ErrCannotCreateEntity("user roles", err)
+		}
+
 	}
 
 	return updatedRecord, nil

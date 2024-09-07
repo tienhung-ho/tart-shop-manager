@@ -8,6 +8,9 @@ import (
 	"strconv"
 	"tart-shop-manager/internal/common"
 	accountmodel "tart-shop-manager/internal/entity/dtos/sql/account"
+	rolemodel "tart-shop-manager/internal/entity/dtos/sql/role"
+	casbinbusiness "tart-shop-manager/internal/service/policies"
+	rolebusiness "tart-shop-manager/internal/service/role"
 	hashutil "tart-shop-manager/internal/util/hash"
 	responseutil "tart-shop-manager/internal/util/response"
 )
@@ -18,11 +21,13 @@ type CreateAccountBusiness interface {
 }
 
 type createAccountBusiness struct {
-	store CreateAccountBusiness
+	store     CreateAccountBusiness
+	roleStore rolebusiness.GetRoleStorage
+	auth      casbinbusiness.Authorization
 }
 
-func NewCreateAccountbiz(store CreateAccountBusiness) *createAccountBusiness {
-	return &createAccountBusiness{store: store}
+func NewCreateAccountbiz(store CreateAccountBusiness, roleStore rolebusiness.GetRoleStorage, auth casbinbusiness.Authorization) *createAccountBusiness {
+	return &createAccountBusiness{store: store, roleStore: roleStore, auth: auth}
 }
 
 func (biz *createAccountBusiness) CreateAccount(ctx context.Context, data *accountmodel.CreateAccount, morekeys ...string) (uint64, error) {
@@ -54,6 +59,19 @@ func (biz *createAccountBusiness) CreateAccount(ctx context.Context, data *accou
 		}
 
 		return 0, common.ErrCannotUpdateEntity(accountmodel.EntityName, err)
+	}
+
+	if data.RoleID != 0 {
+		role, err := biz.roleStore.GetRole(ctx, map[string]interface{}{"role_id": data.RoleID})
+
+		if err != nil {
+			return 0, common.ErrNotFoundEntity(rolemodel.EntityName, err)
+		}
+
+		if err := biz.auth.AddUserToRole(ctx, data.Email, role.Name); err != nil {
+			return 0, common.ErrCannotCreateEntity("user roles", err)
+		}
+
 	}
 
 	return recordId, nil
