@@ -29,3 +29,8 @@ func InitEnforcer(db *gorm.DB, modelPath string) (*casbin.Enforcer, error) {
 	})
 	return instance, err
 }
+
+// GetEnforcer returns the singleton instance of the Casbin enforcer.
+func GetEnforcer() *casbin.Enforcer {
+	return instance
+}
