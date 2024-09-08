@@ -33,6 +33,15 @@ func (auth *casbinAuthorization) AddPoliciesForRole(roleName string, permissions
 	return nil
 }
 
+func (biz *casbinAuthorization) RemoveAllPolicesOfRole(roleName string) error {
+	_, err := biz.enforcer.RemoveFilteredPolicy(0, roleName) // 'User' là role cũ
+	if err != nil {
+		return err // Handle error
+	}
+
+	return nil
+}
+
 // AddUserToRole thêm một người dùng vào một nhóm quyền
 func (biz *casbinAuthorization) AddUserToRole(ctx context.Context, user string, role string) error {
 	// Kiểm tra nếu người dùng đã có vai trò này chưa
