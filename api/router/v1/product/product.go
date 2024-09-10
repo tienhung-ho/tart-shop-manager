@@ -10,4 +10,5 @@ import (
 func ProductRouter(product *gin.RouterGroup, db *gorm.DB, rdb *redis.Client) {
 	product.GET("/:id", producthandler.GetProductHandler(db, rdb))
 	product.POST("/", producthandler.CreateProductHandler(db, rdb))
+	product.PATCH("/:id", producthandler.UpdateProductHandler(db, rdb))
 }
