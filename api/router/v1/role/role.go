@@ -12,4 +12,5 @@ func RoleRouter(role *gin.RouterGroup, db *gorm.DB, rdb *redis.Client) {
 	role.POST("/", rolehandler.CreateRoleHandler(db))
 	role.PATCH("/:id", rolehandler.UpdateRoleHandler(db, rdb))
 	role.DELETE("/:id", rolehandler.DeleteRoleHandler(db, rdb))
+	role.GET("/list", rolehandler.ListItemRole(db, rdb))
 }
