@@ -12,6 +12,7 @@ func (s *mysqlProduct) GetProduct(ctx context.Context, cond map[string]interface
 	var record productmodel.Product
 
 	if err := db.WithContext(ctx).Where(cond).Preload("Category").Preload("Recipes").First(&record).Error; err != nil {
+		return nil, err
 	}
 
 	return &record, nil
