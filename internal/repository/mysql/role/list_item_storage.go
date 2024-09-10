@@ -37,10 +37,10 @@ func (s *mysqlRole) ListItemRole(ctx context.Context, cond map[string]interface{
 }
 
 func (s *mysqlRole) countRecord(db *gorm.DB, cond map[string]interface{}, paging *paggingcommon.Paging, filter *commonfilter.Filter) error {
-	if roleIdS, is := cond["permission_id"]; is {
+	if roleIdS, is := cond["role_id"]; is {
 
 		if roleList, valid := roleIdS.([]uint); valid && len(roleList) > 0 {
-			db = db.Where("permission_id IN ?", roleList)
+			db = db.Where("role_id IN ?", roleList)
 		} else {
 			return common.NewErrorResponse(nil, "Invalid names format", "names must be a non-empty slice of strings", "InvalidNames")
 		}

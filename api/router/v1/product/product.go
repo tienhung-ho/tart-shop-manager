@@ -12,4 +12,5 @@ func ProductRouter(product *gin.RouterGroup, db *gorm.DB, rdb *redis.Client) {
 	product.POST("/", producthandler.CreateProductHandler(db, rdb))
 	product.PATCH("/:id", producthandler.UpdateProductHandler(db, rdb))
 	product.DELETE("/:id", producthandler.DeleteProductHandler(db, rdb))
+	product.GET("/list", producthandler.ListProductHandler(db, rdb))
 }

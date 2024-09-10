@@ -17,7 +17,7 @@ func ListItemRole(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 	return func(c *gin.Context) {
 
 		condition := map[string]interface{}{
-			"status": []string{"pending", "active"},
+			"status": []string{"pending", "active", "inactive"},
 		}
 
 		var paging paggingcommon.Paging
