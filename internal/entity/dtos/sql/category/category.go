@@ -2,6 +2,11 @@ package categorymodel
 
 import (
 	"tart-shop-manager/internal/common"
+	categorycachemodel "tart-shop-manager/internal/entity/dtos/redis/category"
+)
+
+var (
+	EntityName = "category"
 )
 
 type Category struct {
@@ -15,4 +20,10 @@ type Category struct {
 
 func (Category) TableName() string {
 	return "Category"
+}
+
+func (c Category) ToCreateCategoryCache() *categorycachemodel.CreateCategory {
+	return &categorycachemodel.CreateCategory{
+		CategoryID: c.CategoryID,
+	}
 }

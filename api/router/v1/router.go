@@ -4,7 +4,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
+	authhandler "tart-shop-manager/api/handler/auth"
+	authmiddleware "tart-shop-manager/api/middleware/auth"
 	accountv1 "tart-shop-manager/api/router/v1/account"
+	categoryv1 "tart-shop-manager/api/router/v1/category"
 	productv1 "tart-shop-manager/api/router/v1/product"
 	rolev1 "tart-shop-manager/api/router/v1/role"
 )
@@ -12,7 +15,10 @@ import (
 func NewRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
 	r := gin.Default()
 
+	r.POST("/login", authhandler.LoginHandler(db))
+
 	v1 := r.Group("/v1")
+	v1.Use(authmiddleware.AuthRequire(), authmiddleware.CasbinMiddleware())
 	{
 		account := v1.Group("/account")
 		{
@@ -27,6 +33,10 @@ func NewRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
 		product := v1.Group("/product")
 		{
 			productv1.ProductRouter(product, db, rdb)
+		}
+		category := v1.Group("/category")
+		{
+			categoryv1.CategoryRouter(category, db, rdb)
 		}
 	}
 	return r
