@@ -13,3 +13,19 @@ type CommonFields struct {
 	UpdatedBy string         `gorm:"column:updated_by;type:char(30)" json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
+
+// Hook BeforeCreate để thiết lập CreatedBy từ context
+func (cf *CommonFields) BeforeCreate(tx *gorm.DB) (err error) {
+	if email, ok := tx.Statement.Context.Value("email").(string); ok {
+		cf.CreatedBy = email
+	}
+	return nil
+}
+
+// Hook BeforeUpdate để thiết lập UpdatedBy từ context
+func (cf *CommonFields) BeforeUpdate(tx *gorm.DB) (err error) {
+	if email, ok := tx.Statement.Context.Value("email").(string); ok {
+		cf.UpdatedBy = email
+	}
+	return nil
+}

@@ -9,4 +9,5 @@ import (
 
 func CategoryRouter(category *gin.RouterGroup, db *gorm.DB, rdb *redis.Client) {
 	category.GET("/:id", categoryhandler.GetCategoryHandler(db, rdb))
+	category.POST("/", categoryhandler.CreateCategoryHandler(db))
 }
