@@ -54,9 +54,9 @@ func (a Account) ToSimpleAccount() *Account {
 		Phone:     a.Phone,
 		Fullname:  a.Fullname,
 		AvatarURL: a.AvatarURL,
-		//Password:  a.Password,
-		Email:  a.Email,
-		Gender: a.Gender,
+		Role:      a.Role,
+		Email:     a.Email,
+		Gender:    a.Gender,
 		CommonFields: &common.CommonFields{
 			Status: a.Status,
 		},
