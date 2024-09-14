@@ -12,7 +12,7 @@ type CreateAccount struct {
 	RePassword string         `gorm:"-" json:"re_password" validate:"required,eqfield=Password"`
 	Email      string         `gorm:"column:email;size:100;not null;unique" json:"email" validate:"required,email"`
 	Gender     *common.Gender `gorm:"column:gender;type:enum('Male', 'Female', 'Other')" json:"gender"`
-	*common.CommonFields
+	common.CommonFields
 }
 
 func (CreateAccount) TableName() string {

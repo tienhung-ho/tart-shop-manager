@@ -67,12 +67,10 @@ func (biz *updateRoleBusiness) UpdateRole(ctx context.Context, cond map[string]i
 	}
 
 	role := rolemodel.UpdateRole{
-		Name:        data.Name,
-		Description: data.Description,
-		Permissions: permissions,
-		CommonFields: &common.CommonFields{
-			CreatedBy: "system", // Có thể thay bằng người dùng hiện tại
-		},
+		Name:         data.Name,
+		Description:  data.Description,
+		Permissions:  permissions,
+		CommonFields: data.CommonFields,
 	}
 
 	if err := biz.store.UpdateRole(ctx, map[string]interface{}{"role_id": record.RoleID}, &role, morekeys...); err != nil {

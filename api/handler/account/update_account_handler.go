@@ -76,7 +76,7 @@ func UpdateAccountHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 		auth := casbinutil.NewCasbinAuthorization(enforcer)
 		biz := accountbusiness.NewUpdateAccount(store, roleStore, cache, auth)
 
-		updatedRecord, err := biz.UpdateAccount(c.Request.Context(), map[string]interface{}{"account_id": id}, &data)
+		updatedRecord, err := biz.UpdateAccount(c, map[string]interface{}{"account_id": id}, &data)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err)

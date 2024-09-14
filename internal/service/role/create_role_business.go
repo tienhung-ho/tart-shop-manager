@@ -48,7 +48,7 @@ func (biz *createRoleBusiness) CreateRole(ctx context.Context, data *rolemodel.C
 
 	// Tìm tất cả các permissions tồn tại trong database
 	var cond map[string]interface{}
-	
+
 	if len(permissionIds) > 0 {
 		cond = map[string]interface{}{
 			"permission_id": permissionIds,
@@ -65,12 +65,10 @@ func (biz *createRoleBusiness) CreateRole(ctx context.Context, data *rolemodel.C
 	}
 
 	role := rolemodel.CreateRole{
-		Name:        data.Name,
-		Description: data.Description,
-		Permissions: permissions,
-		CommonFields: &common.CommonFields{
-			CreatedBy: "system", // Có thể thay bằng người dùng hiện tại
-		},
+		Name:         data.Name,
+		Description:  data.Description,
+		Permissions:  permissions,
+		CommonFields: data.CommonFields,
 	}
 
 	recordId, err := biz.store.CreateRole(ctx, &role)

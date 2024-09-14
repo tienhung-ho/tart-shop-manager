@@ -20,7 +20,7 @@ func (s *mysqlRole) UpdateRole(ctx context.Context, cond map[string]interface{},
 	defer commonrecover.RecoverTransaction(db)
 
 	// Cập nhật thông tin role
-	if err := db.WithContext(ctx).Model(&rolemodel.Role{}).Where(cond).Updates(&data).Error; err != nil {
+	if err := db.WithContext(ctx).Model(&rolemodel.UpdateRole{}).Where(cond).Updates(&data).Error; err != nil {
 		log.Print(err)
 		db.Rollback() // Rollback ngay khi có lỗi
 		return err

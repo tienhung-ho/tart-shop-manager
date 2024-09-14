@@ -51,7 +51,7 @@ func CreateAccountHandler(db *gorm.DB) func(c *gin.Context) {
 		auth := casbinutil.NewCasbinAuthorization(enforcer)
 		biz := accountbusiness.NewCreateAccountbiz(store, roleStore, auth)
 
-		recordId, err := biz.CreateAccount(c.Request.Context(), &data)
+		recordId, err := biz.CreateAccount(c, &data)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err)

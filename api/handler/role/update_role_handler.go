@@ -39,7 +39,7 @@ func UpdateRoleHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 		auth := casbinutil.NewCasbinAuthorization(enforcer)
 		biz := rolebusiness.NewUpdateRolebiz(store, cache, perStore, auth)
 
-		if err := biz.UpdateRole(c.Request.Context(), map[string]interface{}{"role_id": id}, &updateData); err != nil {
+		if err := biz.UpdateRole(c, map[string]interface{}{"role_id": id}, &updateData); err != nil {
 			c.JSON(http.StatusInternalServerError, err)
 			return
 		}

@@ -13,9 +13,9 @@ type CreateProduct struct {
 	CategoryID      uint64 `gorm:"column:category_id;not null" json:"category_id" validate:"required"`
 	//Category        *categorymodel.Category `gorm:"foreignKey:CategoryID;references:CategoryID" json:"category"`
 	//Recipes         []recipemodel.Recipe    `gorm:"foreignKey:ProductID" json:"recipes"`
-	*common.CommonFields
+	common.CommonFields `gorm:"embedded"`
 }
 
 func (CreateProduct) TableName() string {
-	return "Product"
+	return Product{}.TableName()
 }

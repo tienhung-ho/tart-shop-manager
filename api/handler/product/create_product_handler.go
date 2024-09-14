@@ -42,7 +42,7 @@ func CreateProductHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 		store := productstorage.NewMySQLProduct(db)
 		biz := productbusiness.NewCreateProductBusiness(store)
 
-		recordId, err := biz.CreateProduct(c.Request.Context(), &data)
+		recordId, err := biz.CreateProduct(c, &data)
 
 		if err != nil {
 			c.JSON(http.StatusBadRequest, err)

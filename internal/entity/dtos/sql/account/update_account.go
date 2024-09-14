@@ -12,7 +12,7 @@ type UpdateAccount struct {
 	Email      *string        `gorm:"column:email;size:100;unique" json:"email" validate:"omitempty,email"`
 	Version    int            `gorm:"default:1"`
 	Gender     *common.Gender `gorm:"column:gender;type:enum('Male', 'Female', 'Other')" json:"gender"`
-	*common.CommonFields
+	common.CommonFields
 }
 
 func (UpdateAccount) TableName() string {

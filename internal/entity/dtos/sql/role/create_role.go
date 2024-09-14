@@ -10,7 +10,7 @@ type CreateRole struct {
 	Name        string                       `gorm:"column:name;size:255;not null;unique" json:"name"`
 	Description string                       `gorm:"column:description" json:"description"`
 	Permissions []permissionmodel.Permission `gorm:"many2many:role_permissions;foreignKey:RoleID;joinForeignKey:RoleID;References:PermissionID;joinReferences:PermissionID"`
-	*common.CommonFields
+	common.CommonFields
 }
 
 func (CreateRole) TableName() string {

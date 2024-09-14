@@ -7,7 +7,7 @@ type CreateCategory struct {
 	Name        string `gorm:"column:name;size:200;not null;unique" json:"name" validate:"required"`
 	Description string `gorm:"column:description;type:text" json:"description"`
 	//Products    []Product `gorm:"foreignKey:CategoryID" json:"products"` // Một Category có nhiều Product
-	*common.CommonFields
+	common.CommonFields
 }
 
 func (CreateCategory) TableName() string {

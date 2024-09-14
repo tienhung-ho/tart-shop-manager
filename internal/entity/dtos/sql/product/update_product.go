@@ -9,7 +9,7 @@ type UpdateProduct struct {
 	QuantityInStock int    `gorm:"column:quantity_in_stock;not null" json:"quantity_in_stock" validate:"required,gt=0"`
 	ImageURL        string `gorm:"column:image_url;size:300;not null" json:"image_url"`
 	CategoryID      uint64 `gorm:"column:category_id;not null" json:"category_id" validate:"required"`
-	*common.CommonFields
+	common.CommonFields
 }
 
 func (UpdateProduct) TableName() string {

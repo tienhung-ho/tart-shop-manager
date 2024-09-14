@@ -2,7 +2,6 @@ package accountstorage
 
 import (
 	"context"
-	"log"
 	"tart-shop-manager/internal/common"
 	commonrecover "tart-shop-manager/internal/common/recover"
 	"tart-shop-manager/internal/entity/dtos/sql/account"
@@ -26,8 +25,6 @@ func (s *mysqlAccount) CreateAccount(ctx context.Context, data *accountmodel.Cre
 	if err := db.Commit().Error; err != nil {
 		return 0, common.ErrDB(err)
 	}
-
-	log.Print(data.AccountID)
 
 	return data.AccountID, nil
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
+	"log"
 	"net/http"
 	"strconv"
 	"tart-shop-manager/internal/common"
@@ -34,7 +35,11 @@ func UpdateProductHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 		cache := productcache.NewRdbStorage(rdb)
 		biz := productbusiness.NewUpdatePruductBiz(store, cache)
 
-		updatedProduct, err := biz.UpdateProduct(c.Request.Context(), map[string]interface{}{"product_id": id}, &data)
+		email := c.GetString("email")
+		log.Print(email)
+		//ctx := context.WithValue(c.Request.Context(), "email", email)
+
+		updatedProduct, err := biz.UpdateProduct(c, map[string]interface{}{"product_id": id}, &data)
 
 		if err != nil {
 			c.JSON(http.StatusBadRequest, err)

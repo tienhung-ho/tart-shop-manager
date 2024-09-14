@@ -3,10 +3,7 @@ package productbusiness
 import (
 	"context"
 	"tart-shop-manager/internal/common"
-	commonfilter "tart-shop-manager/internal/common/filter"
-	paggingcommon "tart-shop-manager/internal/common/paging"
 	productmodel "tart-shop-manager/internal/entity/dtos/sql/product"
-	cacheutil "tart-shop-manager/internal/util/cache"
 )
 
 type UpdateProductStorage interface {
@@ -27,7 +24,8 @@ func NewUpdatePruductBiz(store UpdateProductStorage, cache UpdateProductCache) *
 	return &updateProductBusiness{store, cache}
 }
 
-func (biz *updateProductBusiness) UpdateProduct(ctx context.Context, cond map[string]interface{}, data *productmodel.UpdateProduct, morekeys ...string) (*productmodel.Product, error) {
+func (biz *updateProductBusiness) UpdateProduct(ctx context.Context,
+	cond map[string]interface{}, data *productmodel.UpdateProduct, morekeys ...string) (*productmodel.Product, error) {
 
 	record, err := biz.store.GetProduct(ctx, cond, morekeys...)
 
@@ -45,14 +43,14 @@ func (biz *updateProductBusiness) UpdateProduct(ctx context.Context, cond map[st
 		return nil, common.ErrCannotUpdateEntity(productmodel.EntityName, err)
 	}
 
-	var pagging paggingcommon.Paging
-	pagging.Process()
-
-	key := cacheutil.GenerateKey(productmodel.EntityName, cond, pagging, commonfilter.Filter{})
-
-	if err := biz.cache.DeleteProduct(ctx, key); err != nil {
-		return nil, common.ErrCannotDeleteEntity(productmodel.EntityName, err)
-	}
+	//var pagging paggingcommon.Paging
+	//pagging.Process()
+	//
+	//key := cacheutil.GenerateKey(productmodel.EntityName, cond, pagging, commonfilter.Filter{})
+	//
+	//if err := biz.cache.DeleteProduct(ctx, key); err != nil {
+	//	return nil, common.ErrCannotDeleteEntity(productmodel.EntityName, err)
+	//}
 
 	return updatedRecord, nil
 }

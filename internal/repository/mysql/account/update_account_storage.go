@@ -18,7 +18,7 @@ func (s *mysqlAccount) UpdateAccount(ctx context.Context, cond map[string]interf
 
 	defer commonrecover.RecoverTransaction(db)
 
-	if err := db.WithContext(ctx).Model(&accountmodel.Account{}).Where(cond).
+	if err := db.WithContext(ctx).Model(&accountmodel.CreateAccount{}).Where(cond).
 		Clauses(clause.Locking{Strength: "UPDATE"}).
 		//Clauses(clause.Returning{}).
 		Updates(account).Error; err != nil {
@@ -29,7 +29,7 @@ func (s *mysqlAccount) UpdateAccount(ctx context.Context, cond map[string]interf
 
 	// Truy vấn lại bản ghi đã cập nhật
 	var updatedRecord accountmodel.Account
-	if err := db.WithContext(ctx).Model(&accountmodel.Account{}).Where(cond).First(&updatedRecord).Error; err != nil {
+	if err := db.WithContext(ctx).Model(&accountmodel.Account{}).Where(cond).Preload("Role").First(&updatedRecord).Error; err != nil {
 		db.Rollback()
 		return nil, err
 	}

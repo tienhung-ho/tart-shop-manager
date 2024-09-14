@@ -46,7 +46,7 @@ func CreateRoleHandler(db *gorm.DB) func(c *gin.Context) {
 		perStore := permissionstorage.NewMySQLPermission(db)
 		biz := rolebusiness.NewCreateRoleBiz(store, perStore, auth)
 
-		recordId, err := biz.CreateRole(c.Request.Context(), &data)
+		recordId, err := biz.CreateRole(c, &data)
 
 		if err != nil {
 			c.JSON(http.StatusBadRequest, err)
