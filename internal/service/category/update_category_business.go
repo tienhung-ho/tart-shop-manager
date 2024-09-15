@@ -5,7 +5,11 @@ import (
 	"errors"
 	"github.com/go-sql-driver/mysql"
 	"tart-shop-manager/internal/common"
+	commonfilter "tart-shop-manager/internal/common/filter"
+	paggingcommon "tart-shop-manager/internal/common/paging"
+	accountmodel "tart-shop-manager/internal/entity/dtos/sql/account"
 	categorymodel "tart-shop-manager/internal/entity/dtos/sql/category"
+	cacheutil "tart-shop-manager/internal/util/cache"
 	responseutil "tart-shop-manager/internal/util/response"
 )
 
@@ -48,14 +52,14 @@ func (biz *updateCategoryBusiness) UpdateCategory(ctx context.Context, cond map[
 		return nil, common.ErrCannotUpdateEntity(categorymodel.EntityName, err)
 	}
 
-	//var pagging paggingcommon.Paging
-	//pagging.Process()
-	//
-	//key := cacheutil.GenerateKey(accountmodel.EntityName, cond, pagging, commonfilter.Filter{})
-	//
-	//if err := biz.cache.DeleteCategory(ctx, key); err != nil {
-	//	return nil, common.ErrCannotUpdateEntity(accountmodel.EntityName, err)
-	//}
+	var pagging paggingcommon.Paging
+	pagging.Process()
+
+	key := cacheutil.GenerateKey(accountmodel.EntityName, cond, pagging, commonfilter.Filter{})
+
+	if err := biz.cache.DeleteCategory(ctx, key); err != nil {
+		return nil, common.ErrCannotUpdateEntity(accountmodel.EntityName, err)
+	}
 
 	return updatedRecord, nil
 }

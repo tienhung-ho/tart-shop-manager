@@ -11,7 +11,7 @@ type CommonFields struct {
 	UpdatedAt time.Time      `gorm:"column:updated_at;autoUpdateTime" json:"-"`
 	Status    *Status        `gorm:"column:status;type:enum('Pending', 'Active', 'Inactive');default:Pending" json:"status"`
 	CreatedBy string         `gorm:"column:created_by;type:char(30);default:'system'" json:"-"`
-	UpdatedBy string         `gorm:"column:updated_by;type:char(30);default:'system'" json:"-"`
+	UpdatedBy string         `gorm:"column:updated_by;type:char(30)" json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
@@ -29,6 +29,7 @@ func (cf *CommonFields) BeforeCreate(tx *gorm.DB) (err error) {
 func (cf *CommonFields) BeforeUpdate(tx *gorm.DB) (err error) {
 	if email, ok := tx.Statement.Context.Value("email").(string); ok {
 		cf.UpdatedBy = email
+		tx.Statement.SetColumn("updated_by", email)
 	} else {
 		log.Printf("Email is missing from context")
 	}
