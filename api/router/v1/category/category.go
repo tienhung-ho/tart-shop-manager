@@ -12,4 +12,5 @@ func CategoryRouter(category *gin.RouterGroup, db *gorm.DB, rdb *redis.Client) {
 	category.POST("/", categoryhandler.CreateCategoryHandler(db))
 	category.PATCH("/:id", categoryhandler.UpdateCategoryHandler(db, rdb))
 	category.DELETE("/:id", categoryhandler.DeleteCategoryHandler(db, rdb))
+	category.GET("/list", categoryhandler.ListCategoryHandler(db, rdb))
 }
