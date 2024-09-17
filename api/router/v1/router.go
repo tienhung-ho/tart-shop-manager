@@ -8,6 +8,7 @@ import (
 	authmiddleware "tart-shop-manager/api/middleware/auth"
 	accountv1 "tart-shop-manager/api/router/v1/account"
 	categoryv1 "tart-shop-manager/api/router/v1/category"
+	orderv1 "tart-shop-manager/api/router/v1/order"
 	productv1 "tart-shop-manager/api/router/v1/product"
 	rolev1 "tart-shop-manager/api/router/v1/role"
 )
@@ -37,6 +38,10 @@ func NewRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
 		category := v1.Group("/category")
 		{
 			categoryv1.CategoryRouter(category, db, rdb)
+		}
+		order := v1.Group("/order")
+		{
+			orderv1.OrderRouter(order, db, rdb)
 		}
 	}
 	return r
