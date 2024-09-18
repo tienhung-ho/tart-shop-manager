@@ -2,11 +2,8 @@ package productbusiness
 
 import (
 	"context"
-	"errors"
-	"github.com/go-sql-driver/mysql"
 	"tart-shop-manager/internal/common"
 	productmodel "tart-shop-manager/internal/entity/dtos/sql/product"
-	responseutil "tart-shop-manager/internal/util/response"
 )
 
 type CreateProductStorage interface {
@@ -27,15 +24,6 @@ func (biz *createProductBusiness) CreateProduct(ctx context.Context, data *produ
 	recordId, err := biz.store.CreateProduct(ctx, data)
 
 	if err != nil {
-		// Check for MySQL duplicate entry error
-
-		var mysqlErr *mysql.MySQLError
-		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
-
-			fieldName := responseutil.ExtractFieldFromError(err, productmodel.EntityName) // Extract field causing the duplicate error
-			return 0, common.ErrDuplicateEntry(productmodel.EntityName, fieldName, err)
-		}
-
 		return 0, common.ErrCannotUpdateEntity(productmodel.EntityName, err)
 	}
 

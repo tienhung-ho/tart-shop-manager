@@ -2,10 +2,14 @@ package productstorage
 
 import (
 	"context"
+	"errors"
+	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm/clause"
 	"tart-shop-manager/internal/common"
 	commonrecover "tart-shop-manager/internal/common/recover"
+	ingredientmodel "tart-shop-manager/internal/entity/dtos/sql/ingredient"
 	productmodel "tart-shop-manager/internal/entity/dtos/sql/product"
+	responseutil "tart-shop-manager/internal/util/response"
 )
 
 func (s *mysqlProduct) UpdateProduct(ctx context.Context, cond map[string]interface{}, data *productmodel.UpdateProduct, morekeys ...string) (*productmodel.Product, error) {
@@ -22,7 +26,12 @@ func (s *mysqlProduct) UpdateProduct(ctx context.Context, cond map[string]interf
 		Clauses(clause.Locking{Strength: "UPDATE"}).
 		//Clauses(clause.Returning{}).
 		Updates(data).Error; err != nil {
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
 
+			fieldName := responseutil.ExtractFieldFromError(err, ingredientmodel.EntityName) // Extract field causing the duplicate error
+			return nil, common.ErrDuplicateEntry(ingredientmodel.EntityName, fieldName, err)
+		}
 		db.Rollback()
 		return nil, err
 	}

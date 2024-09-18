@@ -2,10 +2,13 @@ package rolestorage
 
 import (
 	"context"
-	"log"
+	"errors"
+	"github.com/go-sql-driver/mysql"
 	"tart-shop-manager/internal/common"
 	commonrecover "tart-shop-manager/internal/common/recover"
+	ingredientmodel "tart-shop-manager/internal/entity/dtos/sql/ingredient"
 	rolemodel "tart-shop-manager/internal/entity/dtos/sql/role"
+	responseutil "tart-shop-manager/internal/util/response"
 )
 
 func (s *mysqlRole) UpdateRole(ctx context.Context, cond map[string]interface{}, data *rolemodel.UpdateRole, morekeys ...string) error {
@@ -21,7 +24,12 @@ func (s *mysqlRole) UpdateRole(ctx context.Context, cond map[string]interface{},
 
 	// Cập nhật thông tin role
 	if err := db.WithContext(ctx).Model(&rolemodel.UpdateRole{}).Where(cond).Updates(&data).Error; err != nil {
-		log.Print(err)
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+
+			fieldName := responseutil.ExtractFieldFromError(err, ingredientmodel.EntityName) // Extract field causing the duplicate error
+			return common.ErrDuplicateEntry(ingredientmodel.EntityName, fieldName, err)
+		}
 		db.Rollback() // Rollback ngay khi có lỗi
 		return err
 	}

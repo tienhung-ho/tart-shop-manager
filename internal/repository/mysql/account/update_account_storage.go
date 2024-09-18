@@ -2,10 +2,14 @@ package accountstorage
 
 import (
 	"context"
+	"errors"
+	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm/clause"
 	"tart-shop-manager/internal/common"
 	commonrecover "tart-shop-manager/internal/common/recover"
 	accountmodel "tart-shop-manager/internal/entity/dtos/sql/account"
+	ingredientmodel "tart-shop-manager/internal/entity/dtos/sql/ingredient"
+	responseutil "tart-shop-manager/internal/util/response"
 )
 
 func (s *mysqlAccount) UpdateAccount(ctx context.Context, cond map[string]interface{}, account *accountmodel.UpdateAccount, morekeys ...string) (*accountmodel.Account, error) {
@@ -22,6 +26,12 @@ func (s *mysqlAccount) UpdateAccount(ctx context.Context, cond map[string]interf
 		Clauses(clause.Locking{Strength: "UPDATE"}).
 		//Clauses(clause.Returning{}).
 		Updates(account).Error; err != nil {
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+
+			fieldName := responseutil.ExtractFieldFromError(err, ingredientmodel.EntityName) // Extract field causing the duplicate error
+			return nil, common.ErrDuplicateEntry(ingredientmodel.EntityName, fieldName, err)
+		}
 
 		db.Rollback()
 		return nil, err

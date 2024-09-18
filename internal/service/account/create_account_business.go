@@ -2,8 +2,6 @@ package accountbusiness
 
 import (
 	"context"
-	"errors"
-	"github.com/go-sql-driver/mysql"
 	"os"
 	"strconv"
 	"tart-shop-manager/internal/common"
@@ -12,7 +10,6 @@ import (
 	casbinbusiness "tart-shop-manager/internal/service/policies"
 	rolebusiness "tart-shop-manager/internal/service/role"
 	hashutil "tart-shop-manager/internal/util/hash"
-	responseutil "tart-shop-manager/internal/util/response"
 )
 
 type CreateAccountBusiness interface {
@@ -49,15 +46,6 @@ func (biz *createAccountBusiness) CreateAccount(ctx context.Context, data *accou
 	recordId, err := biz.store.CreateAccount(ctx, data, morekeys...)
 
 	if err != nil {
-		// Check for MySQL duplicate entry error
-
-		var mysqlErr *mysql.MySQLError
-		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
-
-			fieldName := responseutil.ExtractFieldFromError(err, accountmodel.EntityName) // Extract field causing the duplicate error
-			return 0, common.ErrDuplicateEntry(accountmodel.EntityName, fieldName, err)
-		}
-
 		return 0, common.ErrCannotUpdateEntity(accountmodel.EntityName, err)
 	}
 

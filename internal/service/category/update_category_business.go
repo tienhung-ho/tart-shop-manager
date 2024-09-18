@@ -2,15 +2,11 @@ package categorybusiness
 
 import (
 	"context"
-	"errors"
-	"github.com/go-sql-driver/mysql"
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
-	accountmodel "tart-shop-manager/internal/entity/dtos/sql/account"
 	categorymodel "tart-shop-manager/internal/entity/dtos/sql/category"
 	cacheutil "tart-shop-manager/internal/util/cache"
-	responseutil "tart-shop-manager/internal/util/response"
 )
 
 type UpdateCategoryStorage interface {
@@ -41,24 +37,16 @@ func (biz *updateCategoryBusiness) UpdateCategory(ctx context.Context, cond map[
 
 	updatedRecord, err := biz.store.UpdateCategory(ctx, map[string]interface{}{"category_id": record.CategoryID}, data)
 	if err != nil {
-		// Check for MySQL duplicate entry error
-		var mysqlErr *mysql.MySQLError
-		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
-
-			fieldName := responseutil.ExtractFieldFromError(err, categorymodel.EntityName) // Extract field causing the duplicate error
-			return nil, common.ErrDuplicateEntry(categorymodel.EntityName, fieldName, err)
-		}
-
 		return nil, common.ErrCannotUpdateEntity(categorymodel.EntityName, err)
 	}
 
 	var pagging paggingcommon.Paging
 	pagging.Process()
 
-	key := cacheutil.GenerateKey(accountmodel.EntityName, cond, pagging, commonfilter.Filter{})
+	key := cacheutil.GenerateKey(categorymodel.EntityName, cond, pagging, commonfilter.Filter{})
 
 	if err := biz.cache.DeleteCategory(ctx, key); err != nil {
-		return nil, common.ErrCannotUpdateEntity(accountmodel.EntityName, err)
+		return nil, common.ErrCannotUpdateEntity(categorymodel.EntityName, err)
 	}
 
 	return updatedRecord, nil

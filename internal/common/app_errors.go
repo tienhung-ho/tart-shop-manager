@@ -82,8 +82,8 @@ func ErrCannotGetEntity(entity string, err error) *appError {
 
 func ErrRecordExist(entity string, err error) *appError {
 	return NewErrorResponse(err,
-		fmt.Sprintf("Cannot create %s", strings.ToLower(entity)),
-		fmt.Sprintf("ErrCannot create, record exist %s", entity), entity)
+		fmt.Sprintf("Cannot handle %s", strings.ToLower(entity)),
+		fmt.Sprintf("ErrCannot handle, record exist %s", entity), entity)
 }
 
 func ErrCannotUpdateEntity(entity string, err error) *appError {

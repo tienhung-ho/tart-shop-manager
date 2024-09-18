@@ -2,8 +2,6 @@ package accountbusiness
 
 import (
 	"context"
-	"errors"
-	"github.com/go-sql-driver/mysql"
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
@@ -12,7 +10,6 @@ import (
 	casbinbusiness "tart-shop-manager/internal/service/policies"
 	rolebusiness "tart-shop-manager/internal/service/role"
 	cacheutil "tart-shop-manager/internal/util/cache"
-	responseutil "tart-shop-manager/internal/util/response"
 )
 
 type UpdateAccountStorage interface {
@@ -47,15 +44,6 @@ func (biz *updateAccountBusiness) UpdateAccount(ctx context.Context, cond map[st
 	updatedRecord, err := biz.store.UpdateAccount(ctx, map[string]interface{}{"account_id": record.AccountID}, account, morekeys...)
 
 	if err != nil {
-		// Check for MySQL duplicate entry error
-
-		var mysqlErr *mysql.MySQLError
-		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
-
-			fieldName := responseutil.ExtractFieldFromError(err, accountmodel.EntityName) // Extract field causing the duplicate error
-			return nil, common.ErrDuplicateEntry(accountmodel.EntityName, fieldName, err)
-		}
-
 		return nil, common.ErrCannotUpdateEntity(accountmodel.EntityName, err)
 	}
 	var pagging paggingcommon.Paging

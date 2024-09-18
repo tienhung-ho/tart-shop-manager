@@ -2,15 +2,12 @@ package rolebusiness
 
 import (
 	"context"
-	"errors"
-	"github.com/go-sql-driver/mysql"
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
 	permissionmodel "tart-shop-manager/internal/entity/dtos/sql/permission"
 	rolemodel "tart-shop-manager/internal/entity/dtos/sql/role"
 	casbinbusiness "tart-shop-manager/internal/service/policies"
-	responseutil "tart-shop-manager/internal/util/response"
 )
 
 type CreateRoleStorage interface {
@@ -74,14 +71,6 @@ func (biz *createRoleBusiness) CreateRole(ctx context.Context, data *rolemodel.C
 	recordId, err := biz.store.CreateRole(ctx, &role)
 
 	if err != nil {
-		// Check for MySQL duplicate entry error
-
-		var mysqlErr *mysql.MySQLError
-		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
-
-			fieldName := responseutil.ExtractFieldFromError(err, rolemodel.EntityName) // Extract field causing the duplicate error
-			return 0, common.ErrDuplicateEntry(rolemodel.EntityName, fieldName, err)
-		}
 		return 0, common.ErrCannotCreateEntity(rolemodel.EntityName, err)
 	}
 

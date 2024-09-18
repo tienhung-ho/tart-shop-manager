@@ -2,11 +2,8 @@ package categorybusiness
 
 import (
 	"context"
-	"errors"
-	"github.com/go-sql-driver/mysql"
 	"tart-shop-manager/internal/common"
 	categorymodel "tart-shop-manager/internal/entity/dtos/sql/category"
-	responseutil "tart-shop-manager/internal/util/response"
 )
 
 type CreateCategoryStorage interface {
@@ -28,14 +25,6 @@ func (biz *createCategoryBusiness) CreateCategory(ctx context.Context, data *cat
 
 	if err != nil {
 		// Check for MySQL duplicate entry error
-
-		var mysqlErr *mysql.MySQLError
-		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
-
-			fieldName := responseutil.ExtractFieldFromError(err, categorymodel.EntityName) // Extract field causing the duplicate error
-			return 0, common.ErrDuplicateEntry(categorymodel.EntityName, fieldName, err)
-		}
-
 		return 0, common.ErrCannotUpdateEntity(categorymodel.EntityName, err)
 	}
 
