@@ -9,4 +9,5 @@ import (
 
 func IngredientRouter(ingre *gin.RouterGroup, db *gorm.DB, rdb *redis.Client) {
 	ingre.GET("/:id", ingredienthandler.GetIngredientHandler(db, rdb))
+	ingre.POST("/", ingredienthandler.CreateIngredientHandler(db))
 }
