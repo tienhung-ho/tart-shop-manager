@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
 )
 
 type Status string
@@ -84,4 +86,52 @@ func (j JSON) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return json.RawMessage(j).MarshalJSON()
+}
+
+type CustomDate struct {
+	time.Time
+}
+
+const dateFormat = "2006-01-02"
+
+// Marshal JSON to ensure correct format when returning to client
+func (cd *CustomDate) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf("\"%s\"", cd.Time.Format(dateFormat))), nil
+}
+
+// Unmarshal JSON to bind the incoming date string to time.Time
+func (cd *CustomDate) UnmarshalJSON(b []byte) error {
+	strInput := strings.Trim(string(b), "\"")
+	parsedTime, err := time.Parse(dateFormat, strInput)
+	if err != nil {
+		return errors.New("invalid date format, use YYYY-MM-DD")
+	}
+	cd.Time = parsedTime
+	return nil
+}
+
+// Implement the driver.Valuer interface for database serialization
+func (cd CustomDate) Value() (driver.Value, error) {
+	return cd.Time.Format(dateFormat), nil
+}
+
+// Implement the sql.Scanner interface for database deserialization
+func (cd *CustomDate) Scan(value interface{}) error {
+	if value == nil {
+		*cd = CustomDate{Time: time.Time{}}
+		return nil
+	}
+
+	str, ok := value.(string)
+	if !ok {
+		return errors.New("failed to scan date field")
+	}
+
+	parsedTime, err := time.Parse(dateFormat, str)
+	if err != nil {
+		return err
+	}
+
+	cd.Time = parsedTime
+	return nil
 }

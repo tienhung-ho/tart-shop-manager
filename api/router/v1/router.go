@@ -8,9 +8,11 @@ import (
 	authmiddleware "tart-shop-manager/api/middleware/auth"
 	accountv1 "tart-shop-manager/api/router/v1/account"
 	categoryv1 "tart-shop-manager/api/router/v1/category"
+	ingredientv1 "tart-shop-manager/api/router/v1/ingredient"
 	orderv1 "tart-shop-manager/api/router/v1/order"
 	productv1 "tart-shop-manager/api/router/v1/product"
 	rolev1 "tart-shop-manager/api/router/v1/role"
+	stockbatchv1 "tart-shop-manager/api/router/v1/stockbatch"
 )
 
 func NewRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
@@ -42,6 +44,14 @@ func NewRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
 		order := v1.Group("/order")
 		{
 			orderv1.OrderRouter(order, db, rdb)
+		}
+		stockBatch := v1.Group("/stock-batch")
+		{
+			stockbatchv1.StockBatchRouter(stockBatch, db, rdb)
+		}
+		ingredient := v1.Group("/ingredient")
+		{
+			ingredientv1.IngredientRouter(ingredient, db, rdb)
 		}
 	}
 	return r
