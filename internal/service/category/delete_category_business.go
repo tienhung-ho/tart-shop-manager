@@ -43,7 +43,17 @@ func (biz *deleteCategoryBusiness) DeleteCategory(ctx context.Context, cond map[
 	var pagging paggingcommon.Paging
 	pagging.Process()
 
-	key := cacheutil.GenerateKey(accountmodel.EntityName, cond, pagging, commonfilter.Filter{})
+	// Generate cache key
+	key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+		EntityName: categorymodel.EntityName,
+		Cond:       cond,
+		Paging:     pagging,
+		Filter:     commonfilter.Filter{},
+		MoreKeys:   morekeys,
+	})
+	if err != nil {
+		return common.ErrCannotGenerateKey(categorymodel.EntityName, err)
+	}
 
 	if err := biz.cache.DeleteCategory(ctx, key); err != nil {
 		return common.ErrCannotUpdateEntity(accountmodel.EntityName, err)

@@ -54,10 +54,19 @@ func (biz *listItemCategoryBusiness) ListItem(ctx context.Context, cond map[stri
 
 	if len(records) != 0 {
 
-		key := cacheutil.GenerateKey(categorymodel.EntityName, cond, *paging, *filter)
-		err := biz.cache.SaveCategory(ctx, records, key)
-
+		// Generate cache key
+		key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+			EntityName: categorymodel.EntityName,
+			Cond:       cond,
+			Paging:     *paging,
+			Filter:     *filter,
+			MoreKeys:   morekeys,
+		})
 		if err != nil {
+			return nil, common.ErrCannotGenerateKey(categorymodel.EntityName, err)
+		}
+
+		if err := biz.cache.SaveCategory(ctx, records, key); err != nil {
 			return nil, common.ErrCannotCreateEntity(categorymodel.EntityName, err)
 		}
 	}

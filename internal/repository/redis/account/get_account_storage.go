@@ -17,7 +17,17 @@ func (r *rdbStorage) GetAccount(ctx context.Context, cond map[string]interface{}
 	var paging paggingcommon.Paging
 	paging.Process()
 
-	key := cacheutil.GenerateKey(accountmodel.EntityName, cond, paging, commonfilter.Filter{})
+	// Generate cache key
+	key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+		EntityName: accountmodel.EntityName,
+		Cond:       cond,
+		Paging:     paging,
+		Filter:     commonfilter.Filter{},
+		MoreKeys:   morekeys,
+	})
+	if err != nil {
+		return nil, common.ErrCannotGenerateKey(accountmodel.EntityName, err)
+	}
 
 	record, err := r.rdb.Get(ctx, key).Result()
 

@@ -57,7 +57,17 @@ func (biz *getOrderBusiness) GetOrder(ctx context.Context, cond map[string]inter
 		var pagging paggingcommon.Paging
 		pagging.Process()
 
-		key := cacheutil.GenerateKey(ordermodel.EntityName, cond, pagging, commonfilter.Filter{})
+		// Generate cache key
+		key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+			EntityName: ordermodel.EntityName,
+			Cond:       cond,
+			Paging:     pagging,
+			Filter:     commonfilter.Filter{},
+			MoreKeys:   morekeys,
+		})
+		if err != nil {
+			return nil, common.ErrCannotGenerateKey(ordermodel.EntityName, err)
+		}
 
 		createOrder := record.ToCreateOrder()
 		if err := biz.cache.SaveOrder(ctx, createOrder, key); err != nil {

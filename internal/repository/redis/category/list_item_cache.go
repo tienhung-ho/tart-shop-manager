@@ -8,14 +8,23 @@ import (
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
-	accountmodel "tart-shop-manager/internal/entity/dtos/sql/account"
 	categorymodel "tart-shop-manager/internal/entity/dtos/sql/category"
 	cacheutil "tart-shop-manager/internal/util/cache"
 )
 
 func (r *rdbStorage) ListItem(ctx context.Context, cond map[string]interface{}, paging *paggingcommon.Paging, filter *commonfilter.Filter, morekeys ...string) ([]categorymodel.Category, error) {
 
-	key := cacheutil.GenerateKey(accountmodel.EntityName, cond, *paging, *filter)
+	// Generate cache key
+	key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+		EntityName: categorymodel.EntityName,
+		Cond:       cond,
+		Paging:     *paging,
+		Filter:     *filter,
+		MoreKeys:   morekeys,
+	})
+	if err != nil {
+		return nil, common.ErrCannotGenerateKey(categorymodel.EntityName, err)
+	}
 
 	record, err := r.rdb.Get(ctx, key).Result()
 

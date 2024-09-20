@@ -46,7 +46,17 @@ func (biz *deleteProductBusiness) DeleteProduct(ctx context.Context, cond map[st
 	var pagging paggingcommon.Paging
 	pagging.Process()
 
-	key := cacheutil.GenerateKey(productmodel.EntityName, cond, pagging, commonfilter.Filter{})
+	// Generate cache key
+	key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+		EntityName: productmodel.EntityName,
+		Cond:       cond,
+		Paging:     pagging,
+		Filter:     commonfilter.Filter{},
+		MoreKeys:   morekyes,
+	})
+	if err != nil {
+		return common.ErrCannotGenerateKey(productmodel.EntityName, err)
+	}
 
 	if err := biz.cache.DeleteProduct(ctx, key); err != nil {
 		return common.ErrCannotDeleteEntity(productmodel.EntityName, err)

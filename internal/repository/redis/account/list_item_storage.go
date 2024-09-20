@@ -14,7 +14,17 @@ import (
 
 func (r *rdbStorage) ListItem(ctx context.Context, cond map[string]interface{}, paging *paggingcommon.Paging, filter *commonfilter.Filter, morekeys ...string) ([]accountmodel.Account, error) {
 
-	key := cacheutil.GenerateKey(accountmodel.EntityName, cond, *paging, *filter)
+	// Generate cache key
+	key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+		EntityName: accountmodel.EntityName,
+		Cond:       cond,
+		Paging:     *paging,
+		Filter:     *filter,
+		MoreKeys:   morekeys,
+	})
+	if err != nil {
+		return nil, common.ErrCannotGenerateKey(accountmodel.EntityName, err)
+	}
 
 	record, err := r.rdb.Get(ctx, key).Result()
 

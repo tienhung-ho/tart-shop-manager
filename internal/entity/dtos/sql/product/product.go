@@ -11,6 +11,13 @@ var (
 	EntityName = "Product"
 )
 
+var AllowedSortFields = map[string]bool{
+	"name":       true,
+	"created_at": true,
+	"updated_at": true,
+	"product_id": true,
+}
+
 type Product struct {
 	ProductID       uint64                  `gorm:"column:product_id;primaryKey;autoIncrement" json:"product_id"`
 	Name            string                  `gorm:"column:name;size:200;not null" json:"name"`

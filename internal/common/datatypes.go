@@ -17,6 +17,39 @@ const (
 	StatusPending  Status = "Pending"
 )
 
+var validStatuses = map[Status]bool{
+	StatusActive:   true,
+	StatusInactive: true,
+	StatusPending:  true,
+}
+
+func (s Status) IsValid() bool {
+	_, ok := validStatuses[s]
+	return ok
+}
+
+func (s *Status) UnmarshalJSON(b []byte) error {
+	var strValue string
+	if err := json.Unmarshal(b, &strValue); err != nil {
+		return err
+	}
+
+	status := Status(strValue)
+	if !status.IsValid() {
+		return ErrInvalidStatus("data", fmt.Errorf("invalid status value: %s", strValue))
+	}
+
+	*s = status
+	return nil
+}
+
+func (s Status) MarshalJSON() ([]byte, error) {
+	if !s.IsValid() {
+		return nil, ErrInvalidStatus("data", fmt.Errorf("invalid status value: %s", s))
+	}
+	return json.Marshal(string(s))
+}
+
 func (s *Status) Scan(value interface{}) error {
 	if value == nil {
 		*s = StatusPending

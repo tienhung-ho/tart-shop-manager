@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"gorm.io/gorm"
+	"log"
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
@@ -62,7 +63,20 @@ func (biz *getCategoryBusiness) GetCategory(ctx context.Context,
 		pagging.Process()
 
 		createCategore := record.ToCreateCategoryCache()
-		key := cacheutil.GenerateKey(categorymodel.EntityName, cond, pagging, commonfilter.Filter{})
+		// Generate cache key
+		key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+			EntityName: categorymodel.EntityName,
+			Cond:       cond,
+			Paging:     pagging,
+			Filter:     commonfilter.Filter{},
+			MoreKeys:   morekeys,
+		})
+		if err != nil {
+			return nil, common.ErrCannotGenerateKey(categorymodel.EntityName, err)
+		}
+
+		log.Print("123213213", key)
+
 		if err := biz.cache.SaveCategory(ctx, createCategore, key); err != nil {
 			return nil, common.ErrCannotCreateEntity(categorymodel.EntityName, err)
 		}

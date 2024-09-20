@@ -62,10 +62,18 @@ func (biz *getAccountBusiness) GetAccount(ctx context.Context, cond map[string]i
 
 		createRecord := record.ToCreateAccount()
 
-		key := cacheutil.GenerateKey(accountmodel.EntityName, cond, paging, commonfilter.Filter{})
-		err := biz.rdbStore.SaveAccount(ctx, createRecord, key)
-
+		key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+			EntityName: accountmodel.EntityName,
+			Cond:       cond,
+			Paging:     paging,
+			Filter:     commonfilter.Filter{},
+			MoreKeys:   morekeys,
+		})
 		if err != nil {
+			return nil, common.ErrCannotGenerateKey(accountmodel.EntityName, err)
+		}
+
+		if err := biz.rdbStore.SaveAccount(ctx, createRecord, key); err != nil {
 			return nil, common.ErrCannotCreateEntity(accountmodel.EntityName, err)
 		}
 	}

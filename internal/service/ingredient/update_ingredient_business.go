@@ -52,7 +52,18 @@ func (biz *updateIngredientBusiness) UpdateIngredient(ctx context.Context, cond 
 	var pagging paggingcommon.Paging
 	pagging.Process()
 
-	key := cacheutil.GenerateKey(ingredientmodel.EntityName, cond, pagging, commonfilter.Filter{})
+	// Generate cache key
+	key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+		EntityName: ingredientmodel.EntityName,
+		Cond:       cond,
+		Paging:     pagging,
+		Filter:     commonfilter.Filter{},
+		MoreKeys:   morekeys,
+	})
+	if err != nil {
+		return nil, common.ErrCannotGenerateKey(ingredientmodel.EntityName, err)
+	}
+
 	if err := biz.cache.DeleteIngredient(ctx, key); err != nil {
 		log.Print(err)
 		return nil, common.ErrCannotDeleteEntity(ingredientmodel.EntityName, err)

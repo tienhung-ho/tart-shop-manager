@@ -16,7 +16,17 @@ func (r *rdbStorage) GetProduct(ctx context.Context, cond map[string]interface{}
 	var paging paggingcommon.Paging
 	paging.Process()
 
-	key := cacheutil.GenerateKey(productmodel.EntityName, cond, paging, commonfilter.Filter{})
+	// Generate cache key
+	key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+		EntityName: productmodel.EntityName,
+		Cond:       cond,
+		Paging:     paging,
+		Filter:     commonfilter.Filter{},
+		MoreKeys:   morekeys,
+	})
+	if err != nil {
+		return nil, common.ErrCannotGenerateKey(productmodel.EntityName, err)
+	}
 
 	record, err := r.rdb.Get(ctx, key).Result()
 

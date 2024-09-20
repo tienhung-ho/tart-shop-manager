@@ -8,6 +8,7 @@ import (
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
+	productmodel "tart-shop-manager/internal/entity/dtos/sql/product"
 	productstorage "tart-shop-manager/internal/repository/mysql/product"
 	productcache "tart-shop-manager/internal/repository/redis/product"
 	productbusiness "tart-shop-manager/internal/service/product"
@@ -43,11 +44,17 @@ func ListProductHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 		records, err := biz.ListItem(c.Request.Context(), condition, &paging, &filter)
 
 		if err != nil {
-			c.JSON(http.StatusBadRequest, err)
+			// Return the error to the client
+			if appErr, ok := err.(*common.AppError); ok {
+				c.JSON(appErr.StatusCode, common.ErrCannotSort(productmodel.EntityName, err))
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			}
+			c.Abort()
 			return
 		}
 
-		c.JSON(http.StatusOK, common.NewDataResponse(records, "list products successfully"))
+		c.JSON(http.StatusOK, common.NewSuccesResponse(records, paging, filter))
 
 	}
 }

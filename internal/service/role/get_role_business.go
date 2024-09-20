@@ -59,7 +59,17 @@ func (biz *getRoleBusiness) GetRole(ctx context.Context, cond map[string]interfa
 		var pagging paggingcommon.Paging
 		pagging.Process()
 
-		key := cacheutil.GenerateKey(rolemodel.EntityName, cond, pagging, commonfilter.Filter{})
+		// Generate cache key
+		key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+			EntityName: rolemodel.EntityName,
+			Cond:       cond,
+			Paging:     pagging,
+			Filter:     commonfilter.Filter{},
+			MoreKeys:   morekeys,
+		})
+		if err != nil {
+			return nil, common.ErrCannotGenerateKey(rolemodel.EntityName, err)
+		}
 
 		createRole := record.ToCreateRoleCache()
 

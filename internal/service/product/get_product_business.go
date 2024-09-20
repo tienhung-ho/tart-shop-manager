@@ -51,7 +51,17 @@ func (biz *getProductBusiness) GetProduct(ctx context.Context, cond map[string]i
 
 		var createProduct = record.ToCreateAccount()
 
-		key := cacheutil.GenerateKey(productmodel.EntityName, cond, pagging, commonfilter.Filter{})
+		// Generate cache key
+		key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+			EntityName: productmodel.EntityName,
+			Cond:       cond,
+			Paging:     pagging,
+			Filter:     commonfilter.Filter{},
+			MoreKeys:   morekeys,
+		})
+		if err != nil {
+			return nil, common.ErrCannotGenerateKey(productmodel.EntityName, err)
+		}
 
 		if err := biz.cache.SaveProduct(ctx, createProduct, key); err != nil {
 			return nil, common.ErrCannotCreateEntity(productmodel.EntityName, err)

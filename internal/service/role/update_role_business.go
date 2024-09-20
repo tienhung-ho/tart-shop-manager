@@ -86,10 +86,17 @@ func (biz *updateRoleBusiness) UpdateRole(ctx context.Context, cond map[string]i
 		return err
 	}
 
-	var pagging paggingcommon.Paging
-	pagging.Process()
-
-	key := cacheutil.GenerateKey(accountmodel.EntityName, cond, pagging, commonfilter.Filter{})
+	// Generate cache key
+	key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+		EntityName: rolemodel.EntityName,
+		Cond:       cond,
+		Paging:     paging,
+		Filter:     commonfilter.Filter{},
+		MoreKeys:   morekeys,
+	})
+	if err != nil {
+		return common.ErrCannotGenerateKey(rolemodel.EntityName, err)
+	}
 
 	if err := biz.cache.DeleteRole(ctx, key); err != nil {
 		return common.ErrCannotUpdateEntity(accountmodel.EntityName, err)

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/redis/go-redis/v9"
+	"log"
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
@@ -16,9 +17,20 @@ func (r *rdbStorage) GetCategory(ctx context.Context, cond map[string]interface{
 	var paging paggingcommon.Paging
 	paging.Process()
 
-	key := cacheutil.GenerateKey(categorymodel.EntityName, cond, paging, commonfilter.Filter{})
+	// Generate cache key
+	key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+		EntityName: categorymodel.EntityName,
+		Cond:       cond,
+		Paging:     paging,
+		Filter:     commonfilter.Filter{},
+		MoreKeys:   morekeys,
+	})
+	if err != nil {
+		return nil, common.ErrCannotGenerateKey(categorymodel.EntityName, err)
+	}
 
 	record, err := r.rdb.Get(ctx, key).Result()
+	log.Print(record)
 
 	if errors.Is(err, redis.Nil) {
 		return nil, nil // cache misss
@@ -29,6 +41,7 @@ func (r *rdbStorage) GetCategory(ctx context.Context, cond map[string]interface{
 	var category categorymodel.Category
 
 	if err := json.Unmarshal([]byte(record), &category); err != nil {
+		log.Print(err, "11111111111111")
 		return nil, common.ErrDB(err)
 	}
 

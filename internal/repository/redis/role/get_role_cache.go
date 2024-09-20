@@ -17,7 +17,17 @@ func (r *rdbStorage) GetRole(ctx context.Context, cond map[string]interface{}, m
 	var paging paggingcommon.Paging
 	paging.Process()
 
-	key := cacheutil.GenerateKey(rolemodel.EntityName, cond, paging, commonfilter.Filter{})
+	// Generate cache key
+	key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+		EntityName: rolemodel.EntityName,
+		Cond:       cond,
+		Paging:     paging,
+		Filter:     commonfilter.Filter{},
+		MoreKeys:   morekeys,
+	})
+	if err != nil {
+		return nil, common.ErrCannotGenerateKey(rolemodel.EntityName, err)
+	}
 
 	record, err := r.rdb.Get(ctx, key).Result()
 

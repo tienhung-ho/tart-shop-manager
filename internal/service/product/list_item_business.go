@@ -54,10 +54,19 @@ func (biz *listItemBusiness) ListItem(ctx context.Context, cond map[string]inter
 
 	if len(records) != 0 {
 
-		key := cacheutil.GenerateKey(productmodel.EntityName, cond, *pagging, *filter)
-		err := biz.cache.SaveProduct(ctx, records, key)
-
+		// Generate cache key
+		key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+			EntityName: productmodel.EntityName,
+			Cond:       cond,
+			Paging:     *pagging,
+			Filter:     *filter,
+			MoreKeys:   morekeys,
+		})
 		if err != nil {
+			return nil, common.ErrCannotListEntity(productmodel.EntityName, err)
+		}
+
+		if err := biz.cache.SaveProduct(ctx, records, key); err != nil {
 			return nil, common.ErrCannotCreateEntity(productmodel.EntityName, err)
 		}
 	}

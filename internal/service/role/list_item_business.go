@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"gorm.io/gorm"
-	"log"
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
@@ -55,8 +54,17 @@ func (biz *listItemRoleBusiness) ListItemRole(ctx context.Context, cond map[stri
 
 	if len(records) != 0 {
 
-		key := cacheutil.GenerateKey(accountmodel.EntityName, cond, *paging, *filter)
-		log.Print(key)
+		// Generate cache key
+		key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+			EntityName: rolemodel.EntityName,
+			Cond:       cond,
+			Paging:     *paging,
+			Filter:     *filter,
+			MoreKeys:   morekeys,
+		})
+		if err != nil {
+			return nil, common.ErrCannotGenerateKey(rolemodel.EntityName, err)
+		}
 
 		if err := biz.cache.SaveRole(ctx, records, key); err != nil {
 			return nil, common.ErrCannotUpdateEntity(accountmodel.EntityName, err)

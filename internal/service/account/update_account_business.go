@@ -49,7 +49,16 @@ func (biz *updateAccountBusiness) UpdateAccount(ctx context.Context, cond map[st
 	var pagging paggingcommon.Paging
 	pagging.Process()
 
-	key := cacheutil.GenerateKey(accountmodel.EntityName, cond, pagging, commonfilter.Filter{})
+	key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+		EntityName: accountmodel.EntityName,
+		Cond:       cond,
+		Paging:     pagging,
+		Filter:     commonfilter.Filter{},
+		MoreKeys:   morekeys,
+	})
+	if err != nil {
+		return nil, common.ErrCannotGenerateKey(accountmodel.EntityName, err)
+	}
 
 	if err := biz.cache.DeleteAccount(ctx, key); err != nil {
 		return nil, common.ErrCannotUpdateEntity(accountmodel.EntityName, err)
