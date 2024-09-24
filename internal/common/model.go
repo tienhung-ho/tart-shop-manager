@@ -2,7 +2,6 @@ package common
 
 import (
 	"gorm.io/gorm"
-	"log"
 	"time"
 )
 
@@ -20,7 +19,7 @@ func (cf *CommonFields) BeforeCreate(tx *gorm.DB) (err error) {
 	if email, ok := tx.Statement.Context.Value("email").(string); ok {
 		cf.CreatedBy = email
 	} else {
-		log.Printf("Email is missing from context")
+		//log.Printf("Email is missing from context")
 	}
 	return nil
 }
@@ -31,7 +30,7 @@ func (cf *CommonFields) BeforeUpdate(tx *gorm.DB) (err error) {
 		cf.UpdatedBy = email
 		tx.Statement.SetColumn("updated_by", email)
 	} else {
-		log.Printf("Email is missing from context")
+		//log.Printf("Email is missing from context")
 	}
 
 	return nil

@@ -2,13 +2,19 @@ package authmiddleware
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
 	"net/http"
 	"os"
 	"tart-shop-manager/internal/common"
+	rolemodel "tart-shop-manager/internal/entity/dtos/sql/role"
+	rolestorage "tart-shop-manager/internal/repository/mysql/role"
+	rolecache "tart-shop-manager/internal/repository/redis/role"
 	authbusiness "tart-shop-manager/internal/service/auth"
+	rolebusiness "tart-shop-manager/internal/service/role"
 )
 
-func AuthRequire() gin.HandlerFunc {
+func AuthRequire(db *gorm.DB, rdb *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		accessToken, err := c.Cookie("access_token")
 
@@ -46,6 +52,38 @@ func AuthRequire() gin.HandlerFunc {
 		id := claims.AccountId
 		role := claims.Role
 		email := claims.Email
+
+		store := rolestorage.NewMySQLRole(db)
+		cache := rolecache.NewRdbStorage(rdb)
+		biz := rolebusiness.NewGetBusinessBiz(store, cache)
+
+		record, err := biz.GetRole(c, map[string]interface{}{"role_id": role})
+
+		if err != nil {
+			c.JSON(http.StatusNotFound, common.ErrEntityDeleted(rolemodel.EntityName, err))
+			c.Abort()
+			return
+		}
+
+		roleStatus := record.Status
+		
+		// Kiểm tra trạng thái vai trò
+		switch *roleStatus {
+		case common.StatusActive:
+			// Trạng thái hợp lệ, tiếp tục
+		case common.StatusInactive:
+			c.JSON(http.StatusForbidden, common.NewUnauthorized(nil, "Your role is inactive. Please contact support.", "ErrRoleStatus", "ROLE_STATUS"))
+			c.Abort()
+			return
+		case common.StatusPending:
+			c.JSON(http.StatusForbidden, common.NewUnauthorized(nil, "Your role is pending approval.", "ErrRoleStatus", "ROLE_STATUS"))
+			c.Abort()
+			return
+		default:
+			c.JSON(http.StatusForbidden, common.NewUnauthorized(nil, "Your role status does not permit access.", "ErrRoleStatus", "ROLE_STATUS"))
+			c.Abort()
+			return
+		}
 
 		c.Set("id", id)
 		c.Set("role", role)

@@ -7,6 +7,7 @@ import (
 	"tart-shop-manager/internal/common"
 	rolerdbmodel "tart-shop-manager/internal/entity/dtos/redis/role"
 	rolemodel "tart-shop-manager/internal/entity/dtos/sql/role"
+	cacheutil "tart-shop-manager/internal/util/cache"
 	"time"
 )
 
@@ -35,7 +36,14 @@ func (r *rdbStorage) SaveRole(ctx context.Context, data interface{}, morekeys ..
 	default:
 		return errors.New("unsupported data type")
 	}
-	if err := r.rdb.Set(ctx, key, string(record), 20*time.Minute).Err(); err != nil {
+
+	// Mã hóa dữ liệu
+	encryptedData, err := cacheutil.Encrypt(record)
+	if err != nil {
+		return common.ErrDB(err)
+	}
+
+	if err := r.rdb.Set(ctx, key, encryptedData, 10*time.Minute).Err(); err != nil {
 		return common.ErrDB(err)
 	}
 

@@ -1,8 +1,10 @@
 package authmiddleware
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"tart-shop-manager/internal/common"
 	casbinutil "tart-shop-manager/internal/util/policies"
 )
 
@@ -30,7 +32,7 @@ func CasbinMiddleware() gin.HandlerFunc {
 		}
 
 		if !ok {
-			c.JSON(http.StatusForbidden, gin.H{"error": "You don't have permission to access this resource"})
+			c.JSON(http.StatusForbidden, common.ErrNoPermission("user", errors.New("you don't have permission to access this resource")))
 			c.Abort()
 			return
 		}

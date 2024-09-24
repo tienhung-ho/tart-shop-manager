@@ -46,7 +46,7 @@ func (biz *createAccountBusiness) CreateAccount(ctx context.Context, data *accou
 	recordId, err := biz.store.CreateAccount(ctx, data, morekeys...)
 
 	if err != nil {
-		return 0, common.ErrCannotUpdateEntity(accountmodel.EntityName, err)
+		return 0, common.ErrCannotCreateEntity(accountmodel.EntityName, err)
 	}
 
 	if data.RoleID != 0 {

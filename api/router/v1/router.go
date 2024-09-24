@@ -21,7 +21,7 @@ func NewRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
 	r.POST("/login", authhandler.LoginHandler(db))
 
 	v1 := r.Group("/v1")
-	v1.Use(authmiddleware.AuthRequire(), authmiddleware.CasbinMiddleware())
+	v1.Use(authmiddleware.AuthRequire(db, rdb), authmiddleware.CasbinMiddleware())
 	{
 		account := v1.Group("/account")
 		{

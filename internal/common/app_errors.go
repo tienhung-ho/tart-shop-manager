@@ -111,6 +111,20 @@ func ErrInvalidStatus(entity string, err error) *AppError {
 		entity)
 }
 
+func ErrInvalidGender(entity string, err error) *AppError {
+	return NewErrorResponse(err,
+		fmt.Sprintf("Invalid gender for %s", strings.ToLower(entity)),
+		fmt.Sprintf("ErrInvalidGender%s", entity),
+		entity)
+}
+
+func ErrInvalidEnum(entity string, err error) *AppError {
+	return NewErrorResponse(err,
+		fmt.Sprintf("Invalid enum for %s", strings.ToLower(entity)),
+		fmt.Sprintf("ErrInvalidEnum%s", entity),
+		entity)
+}
+
 func ErrEmailInvalid(entity string, err error) *AppError {
 	return NewErrorResponse(err,
 		fmt.Sprintf("Cannot login, wrong email %s", strings.ToLower(entity)),
@@ -143,7 +157,7 @@ func ErrCannotCreateEntity(entity string, err error) *AppError {
 
 func ErrNoPermission(entity string, err error) *AppError {
 	return NewErrorResponse(err,
-		"You have no permission",
+		"You don't have permission to access this resource",
 		"ErrNoPermission", entity)
 }
 
@@ -160,7 +174,6 @@ func ErrNotFoundToken(entity string, err error) *AppError {
 		fmt.Sprintf("Cannot not found %s", strings.ToLower(entity)),
 		fmt.Sprintf("ErrCannotNotFound%s", entity), entity)
 }
-
 func (e *AppError) RootError() error {
 	if err, ok := e.RootErr.(*AppError); ok {
 		return err.RootError()

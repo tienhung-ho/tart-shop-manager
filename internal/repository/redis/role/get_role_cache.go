@@ -29,7 +29,7 @@ func (r *rdbStorage) GetRole(ctx context.Context, cond map[string]interface{}, m
 		return nil, common.ErrCannotGenerateKey(rolemodel.EntityName, err)
 	}
 
-	record, err := r.rdb.Get(ctx, key).Result()
+	encryptedRecord, err := r.rdb.Get(ctx, key).Result()
 
 	if errors.Is(err, redis.Nil) {
 		return nil, nil // cache misss
@@ -37,9 +37,15 @@ func (r *rdbStorage) GetRole(ctx context.Context, cond map[string]interface{}, m
 		return nil, common.ErrDB(err)
 	}
 
+	// Giải mã dữ liệu
+	decryptedData, err := cacheutil.Decrypt([]byte(encryptedRecord))
+	if err != nil {
+		return nil, common.ErrDB(err)
+	}
+
 	var role rolemodel.Role
 
-	if err := json.Unmarshal([]byte(record), &role); err != nil {
+	if err := json.Unmarshal(decryptedData, &role); err != nil {
 		return nil, common.ErrDB(err)
 	}
 
