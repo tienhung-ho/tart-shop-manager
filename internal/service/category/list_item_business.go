@@ -16,7 +16,7 @@ type ListItemSotrage interface {
 }
 
 type ListItemCache interface {
-	ListItem(ctx context.Context, cond map[string]interface{}, paging *paggingcommon.Paging, filter *commonfilter.Filter, morekeys ...string) ([]categorymodel.Category, error)
+	ListItem(ctx context.Context, key string) ([]categorymodel.Category, error)
 	SaveCategory(ctx context.Context, data interface{}, morekeys ...string) error
 }
 
@@ -31,7 +31,22 @@ func NewListItemCategoryBiz(store ListItemSotrage, cache ListItemCache) *listIte
 
 func (biz *listItemCategoryBusiness) ListItem(ctx context.Context, cond map[string]interface{}, paging *paggingcommon.Paging, filter *commonfilter.Filter, morekeys ...string) ([]categorymodel.Category, error) {
 
-	records, err := biz.cache.ListItem(ctx, cond, paging, filter, morekeys...)
+	pagingCopy := *paging
+	filterCopy := *filter
+
+	// Tạo khóa cache
+	key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+		EntityName: categorymodel.EntityName,
+		Cond:       cond,
+		Paging:     pagingCopy,
+		Filter:     filterCopy,
+		MoreKeys:   morekeys,
+	})
+	if err != nil {
+		return nil, common.ErrCannotGenerateKey(categorymodel.EntityName, err)
+	}
+
+	records, err := biz.cache.ListItem(ctx, key)
 
 	if err != nil {
 		return nil, common.ErrCannotListEntity(categorymodel.EntityName, err)
@@ -53,18 +68,6 @@ func (biz *listItemCategoryBusiness) ListItem(ctx context.Context, cond map[stri
 	}
 
 	if len(records) != 0 {
-
-		// Generate cache key
-		key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
-			EntityName: categorymodel.EntityName,
-			Cond:       cond,
-			Paging:     *paging,
-			Filter:     *filter,
-			MoreKeys:   morekeys,
-		})
-		if err != nil {
-			return nil, common.ErrCannotGenerateKey(categorymodel.EntityName, err)
-		}
 
 		if err := biz.cache.SaveCategory(ctx, records, key); err != nil {
 			return nil, common.ErrCannotCreateEntity(categorymodel.EntityName, err)

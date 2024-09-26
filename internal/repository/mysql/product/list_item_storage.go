@@ -25,10 +25,11 @@ func (r *mysqlProduct) ListItem(ctx context.Context, cond map[string]interface{}
 	if err != nil {
 		return nil, err
 	}
-
 	// Execute query
 	var products []productmodel.Product
-	if err := query.Preload("Category").Find(&products).Error; err != nil {
+	if err := query.
+		Preload("Category").
+		Find(&products).Error; err != nil {
 		return nil, err
 	}
 
@@ -55,6 +56,10 @@ func (r *mysqlProduct) buildQuery(db *gorm.DB, cond map[string]interface{}, filt
 		if filter.Search != "" {
 			searchPattern := "%" + filter.Search + "%"
 			db = db.Where("name LIKE ? OR description LIKE ?", searchPattern, searchPattern)
+		}
+
+		if filter.CategoryID != 0 {
+			db = db.Where("category_id = ?", filter.CategoryID)
 		}
 
 		if filter.MinPrice > 0 {

@@ -24,7 +24,10 @@ func (s *mysqlCategory) ListItem(ctx context.Context, cond map[string]interface{
 	query := s.buildQuery(db, cond, filter)
 
 	// Thêm phân trang
-	query = s.addPaging(query, paging)
+	query, err := s.addPaging(query, paging)
+	if err != nil {
+		return nil, err
+	}
 
 	// Thực hiện truy vấn
 	var records []categorymodel.Category
@@ -36,6 +39,9 @@ func (s *mysqlCategory) ListItem(ctx context.Context, cond map[string]interface{
 }
 
 func (s *mysqlCategory) countRecord(db *gorm.DB, cond map[string]interface{}, paging *paggingcommon.Paging, filter *commonfilter.Filter) error {
+	// Apply conditions and filters
+	db = s.buildQuery(db, cond, filter)
+
 	if names, ok := cond["names"]; ok {
 		db = db.Where("name IN ?", names)
 	} else {
@@ -52,12 +58,40 @@ func (s *mysqlCategory) countRecord(db *gorm.DB, cond map[string]interface{}, pa
 
 func (s *mysqlCategory) buildQuery(db *gorm.DB, cond map[string]interface{}, filter *commonfilter.Filter) *gorm.DB {
 	db = db.Where(cond)
-	if filter != nil && filter.Status != "" {
-		db = db.Where("status = ?", filter.Status)
+	if filter != nil {
+		if filter.Status != "" {
+			db = db.Where("status IN ?", filter.Status)
+		}
+
+		if filter.Search != "" {
+			searchPattern := "%" + filter.Search + "%"
+			db = db.Where("name LIKE ? OR description LIKE ?", searchPattern, searchPattern)
+		}
+
 	}
 	return db
 }
 
-func (s *mysqlCategory) addPaging(db *gorm.DB, paging *paggingcommon.Paging) *gorm.DB {
-	return db.Order("category_id desc").Offset((paging.Page - 1) * paging.Limit).Limit(paging.Limit)
+func (s *mysqlCategory) addPaging(db *gorm.DB, paging *paggingcommon.Paging) (*gorm.DB, error) {
+	// Parse and validate the sort fields
+	sortFields, err := paging.ParseSortFields(paging.Sort, categorymodel.AllowedSortFields)
+	if err != nil {
+		return nil, common.NewErrorResponse(err, "Invalid sort parameters", err.Error(), "InvalidSort")
+	}
+
+	// Apply sorting to the query
+	if len(sortFields) > 0 {
+		for _, sortField := range sortFields {
+			db = db.Order(sortField)
+		}
+	} else {
+		// Default sorting if no sort parameters are provided
+		db = db.Order("product_id desc")
+	}
+
+	// Apply pagination
+	offset := (paging.Page - 1) * paging.Limit
+	db = db.Offset(offset).Limit(paging.Limit)
+
+	return db, nil
 }

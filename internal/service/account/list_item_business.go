@@ -16,7 +16,7 @@ type ListItemStorage interface {
 }
 
 type ListItemCache interface {
-	ListItem(ctx context.Context, cond map[string]interface{}, paging *paggingcommon.Paging, filter *commonfilter.Filter, morekeys ...string) ([]accountmodel.Account, error)
+	ListItem(ctx context.Context, key string) ([]accountmodel.Account, error)
 	SaveAccount(ctx context.Context, data interface{}, morekeys ...string) error
 }
 
@@ -31,7 +31,23 @@ func NewListItemBiz(store ListItemStorage, cache ListItemCache) *listItemBusines
 
 func (biz *listItemBusiness) ListItem(ctx context.Context, cond map[string]interface{}, paging *paggingcommon.Paging, filter *commonfilter.Filter, morekeys ...string) ([]accountmodel.Account, error) {
 
-	records, err := biz.cache.ListItem(ctx, cond, paging, filter, morekeys...)
+	// Tạo bản sao của Paging và Filter để sử dụng cho việc tạo khóa cache
+	pagingCopy := *paging
+	filterCopy := *filter
+
+	key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+		EntityName: accountmodel.EntityName,
+		Cond:       cond,
+		Paging:     pagingCopy,
+		Filter:     filterCopy,
+		MoreKeys:   morekeys,
+	})
+
+	if err != nil {
+		return nil, common.ErrCannotGenerateKey(accountmodel.EntityName, err)
+	}
+
+	records, err := biz.cache.ListItem(ctx, key)
 
 	if err != nil {
 		return nil, common.ErrCannotListEntity(accountmodel.EntityName, err)
@@ -53,17 +69,6 @@ func (biz *listItemBusiness) ListItem(ctx context.Context, cond map[string]inter
 	}
 
 	if len(records) != 0 {
-
-		key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
-			EntityName: accountmodel.EntityName,
-			Cond:       cond,
-			Paging:     *paging,
-			Filter:     *filter,
-			MoreKeys:   morekeys,
-		})
-		if err != nil {
-			return nil, common.ErrCannotGenerateKey(accountmodel.EntityName, err)
-		}
 		if err := biz.cache.SaveAccount(ctx, records, key); err != nil {
 			return nil, common.ErrCannotCreateEntity(accountmodel.EntityName, err)
 		}

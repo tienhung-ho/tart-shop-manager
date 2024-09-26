@@ -6,39 +6,20 @@ import (
 	"errors"
 	"github.com/redis/go-redis/v9"
 	"tart-shop-manager/internal/common"
-	commonfilter "tart-shop-manager/internal/common/filter"
-	paggingcommon "tart-shop-manager/internal/common/paging"
 	accountmodel "tart-shop-manager/internal/entity/dtos/sql/account"
-	cacheutil "tart-shop-manager/internal/util/cache"
 )
 
-func (r *rdbStorage) ListItem(ctx context.Context, cond map[string]interface{}, paging *paggingcommon.Paging, filter *commonfilter.Filter, morekeys ...string) ([]accountmodel.Account, error) {
-
-	// Generate cache key
-	key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
-		EntityName: accountmodel.EntityName,
-		Cond:       cond,
-		Paging:     *paging,
-		Filter:     *filter,
-		MoreKeys:   morekeys,
-	})
-	if err != nil {
-		return nil, common.ErrCannotGenerateKey(accountmodel.EntityName, err)
-	}
-
+func (r *rdbStorage) ListItem(ctx context.Context, key string) ([]accountmodel.Account, error) {
 	record, err := r.rdb.Get(ctx, key).Result()
-
 	if errors.Is(err, redis.Nil) {
-		return nil, nil // cache misss
+		return nil, nil // cache miss
 	} else if err != nil {
 		return nil, common.ErrDB(err)
 	}
 
-	var accounts []accountmodel.Account
-
-	if err := json.Unmarshal([]byte(record), &accounts); err != nil {
+	var records []accountmodel.Account
+	if err := json.Unmarshal([]byte(record), &records); err != nil {
 		return nil, common.ErrDB(err)
 	}
-
-	return accounts, nil
+	return records, nil
 }

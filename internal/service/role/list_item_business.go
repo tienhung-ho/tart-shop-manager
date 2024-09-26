@@ -18,7 +18,7 @@ type ListItemRoleStorage interface {
 
 type ListItemRoleCache interface {
 	SaveRole(ctx context.Context, data interface{}, morekeys ...string) error
-	ListItemRole(ctx context.Context, cond map[string]interface{}, paging *paggingcommon.Paging, filter *commonfilter.Filter, morekeys ...string) ([]rolemodel.Role, error)
+	ListItem(ctx context.Context, key string) ([]rolemodel.Role, error)
 }
 
 type listItemRoleBusiness struct {
@@ -32,7 +32,23 @@ func NewListItemRoleBiz(store ListItemRoleStorage, cache ListItemRoleCache) *lis
 
 func (biz *listItemRoleBusiness) ListItemRole(ctx context.Context, cond map[string]interface{}, paging *paggingcommon.Paging, filter *commonfilter.Filter, morekeys ...string) ([]rolemodel.Role, error) {
 
-	records, err := biz.cache.ListItemRole(ctx, cond, paging, filter, morekeys...)
+	// Tạo bản sao của Paging và Filter để sử dụng cho việc tạo khóa cache
+	pagingCopy := *paging
+	filterCopy := *filter
+
+	// Generate cache key
+	key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+		EntityName: rolemodel.EntityName,
+		Cond:       cond,
+		Paging:     pagingCopy,
+		Filter:     filterCopy,
+		MoreKeys:   morekeys,
+	})
+	if err != nil {
+		return nil, common.ErrCannotGenerateKey(rolemodel.EntityName, err)
+	}
+
+	records, err := biz.cache.ListItem(ctx, key)
 
 	if err != nil {
 		return nil, common.ErrCannotListEntity(rolemodel.EntityName, err)
