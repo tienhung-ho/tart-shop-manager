@@ -4,11 +4,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
-	"log"
 	"net/http"
 	"strconv"
 	"tart-shop-manager/internal/common"
 	productmodel "tart-shop-manager/internal/entity/dtos/sql/product"
+	imagestorage "tart-shop-manager/internal/repository/mysql/image"
 	productstorage "tart-shop-manager/internal/repository/mysql/product"
 	productcache "tart-shop-manager/internal/repository/redis/product"
 	productbusiness "tart-shop-manager/internal/service/product"
@@ -33,11 +33,8 @@ func UpdateProductHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 
 		store := productstorage.NewMySQLProduct(db)
 		cache := productcache.NewRdbStorage(rdb)
-		biz := productbusiness.NewUpdatePruductBiz(store, cache)
-
-		email := c.GetString("email")
-		log.Print(email)
-		//ctx := context.WithValue(c.Request.Context(), "email", email)
+		cloud := imagestorage.NewMySQLImage(db)
+		biz := productbusiness.NewUpdatePruductBiz(store, cache, cloud)
 
 		updatedProduct, err := biz.UpdateProduct(c, map[string]interface{}{"product_id": id}, &data)
 

@@ -29,6 +29,7 @@ func (r *mysqlProduct) ListItem(ctx context.Context, cond map[string]interface{}
 	var products []productmodel.Product
 	if err := query.
 		Preload("Category").
+		Preload("Images").
 		Find(&products).Error; err != nil {
 		return nil, err
 	}

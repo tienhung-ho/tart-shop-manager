@@ -24,7 +24,7 @@ func (biz *createProductBusiness) CreateProduct(ctx context.Context, data *produ
 	recordId, err := biz.store.CreateProduct(ctx, data)
 
 	if err != nil {
-		return 0, common.ErrCannotUpdateEntity(productmodel.EntityName, err)
+		return 0, common.ErrCannotCreateEntity(productmodel.EntityName, err)
 	}
 
 	return recordId, nil

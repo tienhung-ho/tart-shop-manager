@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"tart-shop-manager/internal/common"
+	imagestorage "tart-shop-manager/internal/repository/mysql/image"
 	productstorage "tart-shop-manager/internal/repository/mysql/product"
 	productcache "tart-shop-manager/internal/repository/redis/product"
 	productbusiness "tart-shop-manager/internal/service/product"
@@ -25,7 +26,8 @@ func DeleteProductHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 
 		store := productstorage.NewMySQLProduct(db)
 		cache := productcache.NewRdbStorage(rdb)
-		biz := productbusiness.NewDeleteProductBiz(store, cache)
+		cloud := imagestorage.NewMySQLImage(db)
+		biz := productbusiness.NewDeleteProductBiz(store, cache, cloud)
 
 		if err := biz.DeleteProduct(c.Request.Context(), map[string]interface{}{"product_id": id}); err != nil {
 			c.JSON(http.StatusBadRequest, err)

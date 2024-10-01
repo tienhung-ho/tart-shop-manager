@@ -8,6 +8,7 @@ import (
 	authmiddleware "tart-shop-manager/api/middleware/auth"
 	accountv1 "tart-shop-manager/api/router/v1/account"
 	categoryv1 "tart-shop-manager/api/router/v1/category"
+	imagev1 "tart-shop-manager/api/router/v1/image"
 	ingredientv1 "tart-shop-manager/api/router/v1/ingredient"
 	orderv1 "tart-shop-manager/api/router/v1/order"
 	productv1 "tart-shop-manager/api/router/v1/product"
@@ -52,6 +53,10 @@ func NewRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
 		ingredient := v1.Group("/ingredient")
 		{
 			ingredientv1.IngredientRouter(ingredient, db, rdb)
+		}
+		image := v1.Group("/image")
+		{
+			imagev1.ImageRouter(image, db)
 		}
 	}
 	return r

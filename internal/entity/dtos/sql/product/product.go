@@ -4,6 +4,7 @@ import (
 	"tart-shop-manager/internal/common"
 	productcachemodel "tart-shop-manager/internal/entity/dtos/redis/product"
 	categorymodel "tart-shop-manager/internal/entity/dtos/sql/category"
+	imagemodel "tart-shop-manager/internal/entity/dtos/sql/image"
 	recipemodel "tart-shop-manager/internal/entity/dtos/sql/recipe"
 )
 
@@ -23,7 +24,8 @@ type Product struct {
 	Name            string                  `gorm:"column:name;size:200;not null" json:"name"`
 	Description     string                  `gorm:"column:description;type:text" json:"description"`
 	QuantityInStock int                     `gorm:"column:quantity_in_stock;not null" json:"quantity_in_stock"`
-	ImageURL        string                  `gorm:"column:image_url;size:300;not null" json:"image_url"`
+	ImageID         uint64                  `gorm:"column:image_id;size:300;foreignKey:ImageID;references:ImageID;not null" json:"image_id"`
+	Images          []imagemodel.Image      `gorm:"foreignKey:ImageID;references:ImageID" json:"images"`
 	CategoryID      uint64                  `gorm:"column:category_id;not null" json:"category_id"`
 	Category        *categorymodel.Category `gorm:"foreignKey:CategoryID;references:CategoryID" json:"category"`
 	Recipes         []recipemodel.Recipe    `gorm:"foreignKey:ProductID" json:"recipes"`
@@ -43,7 +45,7 @@ func (p *Product) ToCreateAccount() *productcachemodel.CreateProduct {
 		CategoryID:      p.CategoryID,
 		Recipes:         p.Recipes,
 		Category:        p.Category,
-		ImageURL:        p.ImageURL,
+		ImageID:         p.ImageID,
 		CommonFields: &common.CommonFields{
 			CreatedAt: p.CreatedAt,
 			UpdatedAt: p.UpdatedAt,

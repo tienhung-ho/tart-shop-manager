@@ -224,3 +224,58 @@ func ErrCanNotBindEntity(entity string, err error) *AppError {
 		fmt.Sprintf("Cannot not bind %s or data is empty", strings.ToLower(entity)),
 		fmt.Sprintf("ErrCannotNotBindData%s", entity), entity)
 }
+
+var (
+	ErrCloudConnectionFailedSentinel = fmt.Errorf("failed to connect to cloud service")
+	// ... other sentinel errors
+)
+
+// Cloud-related error responses
+
+func ErrCannotUploadFile(entity string, err error) *AppError {
+	return NewFullErrorResponse(http.StatusInternalServerError, err,
+		fmt.Sprintf("Cannot upload %s", strings.ToLower(entity)),
+		err.Error(), fmt.Sprintf("ERR_CANNOT_UPLOAD_%s", strings.ToUpper(entity)))
+}
+
+func ErrCloudConnectionFailed(err error) *AppError {
+	return NewFullErrorResponse(http.StatusInternalServerError, err,
+		"Failed to connect to cloud service",
+		err.Error(), "ERR_CLOUD_CONNECTION_FAILED")
+}
+
+func ErrInvalidCloudCredentials(err error) *AppError {
+	return NewFullErrorResponse(http.StatusUnauthorized, err,
+		"Invalid cloud credentials",
+		err.Error(), "ERR_INVALID_CLOUD_CREDENTIALS")
+}
+
+func ErrFileTooLarge(entity string, err error) *AppError {
+	return NewErrorResponse(err,
+		fmt.Sprintf("%s file size exceeds the limit", strings.ToLower(entity)),
+		err.Error(), fmt.Sprintf("ERR_%s_FILE_TOO_LARGE", strings.ToUpper(entity)))
+}
+
+func ErrUnsupportedFileType(entity string, err error) *AppError {
+	return NewErrorResponse(err,
+		fmt.Sprintf("%s file type is not supported", strings.ToLower(entity)),
+		err.Error(), fmt.Sprintf("ERR_UNSUPPORTED_%s_FILE_TYPE", strings.ToUpper(entity)))
+}
+
+func ErrCannotDeleteFile(entity string, err error) *AppError {
+	return NewErrorResponse(err,
+		fmt.Sprintf("%s can not delete file", strings.ToLower(entity)),
+		err.Error(), fmt.Sprintf("ERR_DELETE_%s_FILE", strings.ToUpper(entity)))
+}
+
+func ErrCloudTimeout(err error) *AppError {
+	return NewFullErrorResponse(http.StatusGatewayTimeout, err,
+		"Cloud service timeout",
+		err.Error(), "ERR_CLOUD_TIMEOUT")
+}
+
+func ErrCloudServiceUnavailable(err error) *AppError {
+	return NewFullErrorResponse(http.StatusServiceUnavailable, err,
+		"Cloud service is unavailable",
+		err.Error(), "ERR_CLOUD_SERVICE_UNAVAILABLE")
+}

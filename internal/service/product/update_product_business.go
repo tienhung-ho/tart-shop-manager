@@ -2,6 +2,7 @@ package productbusiness
 
 import (
 	"context"
+	"log"
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
@@ -18,13 +19,18 @@ type UpdateProductCache interface {
 	DeleteProduct(ctx context.Context, morekeys ...string) error
 }
 
+type UpdateImageCloud interface {
+	DeleteImage(ctx context.Context, cond map[string]interface{}, morekeys ...string) error
+}
+
 type updateProductBusiness struct {
 	store UpdateProductStorage
 	cache UpdateProductCache
+	cloud UpdateImageCloud
 }
 
-func NewUpdatePruductBiz(store UpdateProductStorage, cache UpdateProductCache) *updateProductBusiness {
-	return &updateProductBusiness{store, cache}
+func NewUpdatePruductBiz(store UpdateProductStorage, cache UpdateProductCache, cloud UpdateImageCloud) *updateProductBusiness {
+	return &updateProductBusiness{store, cache, cloud}
 }
 
 func (biz *updateProductBusiness) UpdateProduct(ctx context.Context,
@@ -44,6 +50,14 @@ func (biz *updateProductBusiness) UpdateProduct(ctx context.Context,
 
 	if err != nil {
 		return nil, common.ErrCannotUpdateEntity(productmodel.EntityName, err)
+	}
+
+	oldImageId := record.ImageID
+	if data.ImageID != oldImageId {
+		if err := biz.cloud.DeleteImage(ctx, map[string]interface{}{"image_id": oldImageId}, morekeys...); err != nil {
+			log.Print("could not delete image in database, %e", err)
+			return nil, nil
+		}
 	}
 
 	var pagging paggingcommon.Paging
