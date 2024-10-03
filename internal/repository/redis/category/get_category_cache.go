@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/redis/go-redis/v9"
-	"log"
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
@@ -30,7 +29,6 @@ func (r *rdbStorage) GetCategory(ctx context.Context, cond map[string]interface{
 	}
 
 	record, err := r.rdb.Get(ctx, key).Result()
-	log.Print(record)
 
 	if errors.Is(err, redis.Nil) {
 		return nil, nil // cache misss
@@ -41,7 +39,6 @@ func (r *rdbStorage) GetCategory(ctx context.Context, cond map[string]interface{
 	var category categorymodel.Category
 
 	if err := json.Unmarshal([]byte(record), &category); err != nil {
-		log.Print(err, "11111111111111")
 		return nil, common.ErrDB(err)
 	}
 

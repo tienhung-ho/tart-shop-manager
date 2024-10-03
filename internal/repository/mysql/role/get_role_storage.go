@@ -14,7 +14,10 @@ func (s *mysqlRole) GetRole(ctx context.Context, cond map[string]interface{}, mo
 
 	var role rolemodel.Role
 
-	if err := db.WithContext(ctx).Where(cond).Preload("Permissions").First(&role).Error; err != nil {
+	if err := db.WithContext(ctx).
+		Select(rolemodel.SelectFields).
+		Where(cond).
+		Preload("Permissions").First(&role).Error; err != nil {
 		return nil, err
 	}
 

@@ -13,6 +13,7 @@ import (
 	"tart-shop-manager/internal/common"
 	accountmodel "tart-shop-manager/internal/entity/dtos/sql/account"
 	accountstorage "tart-shop-manager/internal/repository/mysql/account"
+	imagestorage "tart-shop-manager/internal/repository/mysql/image"
 	rolestorage "tart-shop-manager/internal/repository/mysql/role"
 	accountrdbstorage "tart-shop-manager/internal/repository/redis/account"
 	accountbusiness "tart-shop-manager/internal/service/account"
@@ -73,8 +74,9 @@ func UpdateAccountHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 		store := accountstorage.NewMySQLAccount(db)
 		cache := accountrdbstorage.NewRdbStorage(rdb)
 		roleStore := rolestorage.NewMySQLRole(db)
+		image := imagestorage.NewMySQLImage(db)
 		auth := casbinutil.NewCasbinAuthorization(enforcer)
-		biz := accountbusiness.NewUpdateAccount(store, roleStore, cache, auth)
+		biz := accountbusiness.NewUpdateAccount(store, roleStore, cache, image, auth)
 
 		updatedRecord, err := biz.UpdateAccount(c, map[string]interface{}{"account_id": id}, &data)
 

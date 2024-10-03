@@ -29,7 +29,9 @@ func (s *mysqlRole) ListItemRole(ctx context.Context, cond map[string]interface{
 
 	// Thực hiện truy vấn
 	var records []rolemodel.Role
-	if err := query.Preload("Permissions").Find(&records).Error; err != nil {
+	if err := query.
+		Select(rolemodel.SelectFields).
+		Preload("Permissions").Find(&records).Error; err != nil {
 		return nil, err
 	}
 

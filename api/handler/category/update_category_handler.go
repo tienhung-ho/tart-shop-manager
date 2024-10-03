@@ -9,6 +9,7 @@ import (
 	"tart-shop-manager/internal/common"
 	categorymodel "tart-shop-manager/internal/entity/dtos/sql/category"
 	categorystorage "tart-shop-manager/internal/repository/mysql/category"
+	imagestorage "tart-shop-manager/internal/repository/mysql/image"
 	categorycache "tart-shop-manager/internal/repository/redis/category"
 	categorybusiness "tart-shop-manager/internal/service/category"
 )
@@ -33,7 +34,8 @@ func UpdateCategoryHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) 
 
 		store := categorystorage.NewMySQLCategory(db)
 		cache := categorycache.NewRdbStorage(rdb)
-		biz := categorybusiness.NewUpdateCategoryBiz(store, cache)
+		image := imagestorage.NewMySQLImage(db)
+		biz := categorybusiness.NewUpdateCategoryBiz(store, cache, image)
 
 		updatedCategory, err := biz.UpdateCategory(c, map[string]interface{}{"category_id": id}, &data)
 

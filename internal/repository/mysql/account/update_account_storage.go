@@ -39,7 +39,13 @@ func (s *mysqlAccount) UpdateAccount(ctx context.Context, cond map[string]interf
 
 	// Truy vấn lại bản ghi đã cập nhật
 	var updatedRecord accountmodel.Account
-	if err := db.WithContext(ctx).Model(&accountmodel.Account{}).Where(cond).Preload("Role").First(&updatedRecord).Error; err != nil {
+	if err := db.WithContext(ctx).
+		Model(&accountmodel.Account{}).
+		Select(accountmodel.SelectFields).
+		Where(cond).Preload("Images").
+		Preload("Role").
+		First(&updatedRecord).Error; err != nil {
+
 		db.Rollback()
 		return nil, err
 	}

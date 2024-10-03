@@ -37,7 +37,7 @@ func (s *mysqlCategory) UpdateCategory(ctx context.Context, cond map[string]inte
 	}
 
 	var updatedCategory categorymodel.Category
-	if err := db.WithContext(ctx).Where(cond).First(&updatedCategory).Error; err != nil {
+	if err := db.WithContext(ctx).Select(categorymodel.SelectFields).Where(cond).Preload("Images").First(&updatedCategory).Error; err != nil {
 		db.Rollback()
 		return nil, common.ErrNotFoundEntity(categorymodel.EntityName, err)
 	}

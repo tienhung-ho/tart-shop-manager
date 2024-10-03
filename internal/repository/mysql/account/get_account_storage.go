@@ -12,7 +12,9 @@ func (s *mysqlAccount) GetAccount(ctx context.Context, cond map[string]interface
 	//defer commonrecover.RecoverTransaction(db)
 	var record accountmodel.Account
 
-	if err := db.WithContext(ctx).Where(cond).Preload("Role").First(&record).Error; err != nil {
+	if err := db.WithContext(ctx).
+		Select(accountmodel.SelectFields).
+		Where(cond).Preload("Images").Preload("Role").First(&record).Error; err != nil {
 		return nil, err
 	}
 

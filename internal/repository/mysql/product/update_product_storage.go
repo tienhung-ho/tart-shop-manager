@@ -38,7 +38,7 @@ func (s *mysqlProduct) UpdateProduct(ctx context.Context, cond map[string]interf
 
 	var record productmodel.Product
 
-	if err := db.WithContext(ctx).Model(data).Where(cond).Preload("Category").Preload("Recipes").First(&record).Error; err != nil {
+	if err := db.WithContext(ctx).Model(data).Where(cond).Preload("Images").Preload("Category").Preload("Recipes").First(&record).Error; err != nil {
 		db.Rollback()
 		return nil, common.ErrDB(err)
 	}

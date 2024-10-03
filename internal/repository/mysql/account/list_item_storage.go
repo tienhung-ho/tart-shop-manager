@@ -29,7 +29,9 @@ func (s *mysqlAccount) ListItem(ctx context.Context, cond map[string]interface{}
 
 	// Thực hiện truy vấn
 	var records []accountmodel.Account
-	if err := query.Find(&records).Error; err != nil {
+	if err := query.
+		Select(accountmodel.SelectFields).
+		Preload("Images").Preload("Role").Find(&records).Error; err != nil {
 		return nil, err
 	}
 

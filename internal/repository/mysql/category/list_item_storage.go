@@ -31,7 +31,8 @@ func (s *mysqlCategory) ListItem(ctx context.Context, cond map[string]interface{
 
 	// Thực hiện truy vấn
 	var records []categorymodel.Category
-	if err := query.Find(&records).Error; err != nil {
+	if err := query.Select(categorymodel.SelectFields).
+		Preload("Images").Find(&records).Error; err != nil {
 		return nil, err
 	}
 

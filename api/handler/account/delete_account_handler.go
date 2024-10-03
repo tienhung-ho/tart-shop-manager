@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"tart-shop-manager/internal/common"
 	accountstorage "tart-shop-manager/internal/repository/mysql/account"
+	imagestorage "tart-shop-manager/internal/repository/mysql/image"
 	accountrdbstorage "tart-shop-manager/internal/repository/redis/account"
 	accountbusiness "tart-shop-manager/internal/service/account"
 )
@@ -26,7 +27,8 @@ func DeleteAccountHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 
 		store := accountstorage.NewMySQLAccount(db)
 		cache := accountrdbstorage.NewRdbStorage(rdb)
-		biz := accountbusiness.NewDeleteAccountBiz(store, cache)
+		image := imagestorage.NewMySQLImage(db)
+		biz := accountbusiness.NewDeleteAccountBiz(store, cache, image)
 
 		if err := biz.DeleteAccount(c.Request.Context(), map[string]interface{}{"account_id": idInt}); err != nil {
 			c.JSON(http.StatusBadRequest, err)
