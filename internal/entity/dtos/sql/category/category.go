@@ -3,10 +3,17 @@ package categorymodel
 import (
 	"tart-shop-manager/internal/common"
 	categorycachemodel "tart-shop-manager/internal/entity/dtos/redis/category"
+	imagemodel "tart-shop-manager/internal/entity/dtos/sql/image"
 )
 
 var (
-	EntityName = "category"
+	EntityName   = "category"
+	SelectFields = []string{
+		"category_id",
+		"name",
+		"description",
+		"status",
+	}
 )
 
 var AllowedSortFields = map[string]bool{
@@ -17,10 +24,10 @@ var AllowedSortFields = map[string]bool{
 }
 
 type Category struct {
-	CategoryID  uint64 `gorm:"column:category_id;primaryKey;autoIncrement" json:"category_id"`
-	Name        string `gorm:"column:name;size:200;not null" json:"name"`
-	Description string `gorm:"column:description;type:text" json:"description"`
-	//Products    []Product `gorm:"foreignKey:CategoryID" json:"products"` // Một Category có nhiều Product
+	CategoryID  uint64             `gorm:"column:category_id;primaryKey;autoIncrement" json:"category_id"`
+	Name        string             `gorm:"column:name;size:200;not null" json:"name"`
+	Description string             `gorm:"column:description;type:text" json:"description"`
+	Images      []imagemodel.Image `gorm:"foreignKey:CategoryID;references:CategoryID" json:"images"`
 	*common.CommonFields
 }
 

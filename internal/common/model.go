@@ -2,6 +2,7 @@ package common
 
 import (
 	"gorm.io/gorm"
+	"reflect"
 	"time"
 )
 
@@ -28,9 +29,21 @@ func (cf *CommonFields) BeforeCreate(tx *gorm.DB) (err error) {
 func (cf *CommonFields) BeforeUpdate(tx *gorm.DB) (err error) {
 	if email, ok := tx.Statement.Context.Value("email").(string); ok {
 		cf.UpdatedBy = email
-		tx.Statement.SetColumn("updated_by", email)
+
+		// Get the destination object
+		dest := reflect.ValueOf(tx.Statement.Dest).Elem()
+
+		// Check if the struct has an UpdatedBy field
+		if updatedByField := dest.FieldByName("UpdatedBy"); updatedByField.IsValid() && updatedByField.CanSet() {
+			// Set the value
+			updatedByField.SetString(email)
+
+			// Use GORM's Update method to ensure the change is persisted
+			tx.Update("updated_by", email)
+		}
 	} else {
-		//log.Printf("Email is missing from context")
+		// Consider adding proper error handling or logging here
+		// log.Printf("Email is missing from context")
 	}
 
 	return nil

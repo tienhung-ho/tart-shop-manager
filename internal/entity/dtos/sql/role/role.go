@@ -10,6 +10,15 @@ const (
 	EntityName = "role"
 )
 
+var (
+	SelectFields = []string{
+		"role_id",
+		"name",
+		"status",
+		"description",
+	}
+)
+
 type Role struct {
 	RoleID      uint                         `gorm:"column:role_id;primaryKey;autoIncrement" json:"role_id"`
 	Name        string                       `gorm:"column:name;size:255;not null;unique" json:"name"`

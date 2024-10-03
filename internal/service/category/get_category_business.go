@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"gorm.io/gorm"
-	"log"
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
@@ -74,8 +73,6 @@ func (biz *getCategoryBusiness) GetCategory(ctx context.Context,
 		if err != nil {
 			return nil, common.ErrCannotGenerateKey(categorymodel.EntityName, err)
 		}
-
-		log.Print("123213213", key)
 
 		if err := biz.cache.SaveCategory(ctx, createCategore, key); err != nil {
 			return nil, common.ErrCannotCreateEntity(categorymodel.EntityName, err)
