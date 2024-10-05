@@ -1,11 +1,11 @@
-package rolestorage
+package recipestorage
 
 import "gorm.io/gorm"
 
-type mysqlRole struct {
+type mysqlRecipe struct {
 	db *gorm.DB
 }
 
-func NewMySQLRole(db *gorm.DB) *mysqlRole {
-	return &mysqlRole{db}
+func NewMySQLRecipe(db *gorm.DB) *mysqlRecipe {
+	return &mysqlRecipe{db}
 }

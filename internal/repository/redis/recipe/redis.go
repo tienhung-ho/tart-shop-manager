@@ -1,4 +1,4 @@
-package productcache
+package recipecache
 
 import "github.com/redis/go-redis/v9"
 
