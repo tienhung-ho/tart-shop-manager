@@ -9,4 +9,5 @@ import (
 
 func RecipeRouter(recipe *gin.RouterGroup, db *gorm.DB, rdb *redis.Client) {
 	recipe.GET("/:id", recipehandler.GetRecipeHandler(db, rdb))
+	recipe.POST("/", recipehandler.CreateRecipeHandler(db))
 }

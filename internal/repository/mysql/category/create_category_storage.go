@@ -7,7 +7,6 @@ import (
 	"tart-shop-manager/internal/common"
 	commonrecover "tart-shop-manager/internal/common/recover"
 	categorymodel "tart-shop-manager/internal/entity/dtos/sql/category"
-	ingredientmodel "tart-shop-manager/internal/entity/dtos/sql/ingredient"
 	responseutil "tart-shop-manager/internal/util/response"
 )
 
@@ -25,8 +24,8 @@ func (s *mysqlCategory) CreateCategory(ctx context.Context, data *categorymodel.
 		var mysqlErr *mysql.MySQLError
 		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
 
-			fieldName := responseutil.ExtractFieldFromError(err, ingredientmodel.EntityName) // Extract field causing the duplicate error
-			return 0, common.ErrDuplicateEntry(ingredientmodel.EntityName, fieldName, err)
+			fieldName := responseutil.ExtractFieldFromError(err, categorymodel.EntityName) // Extract field causing the duplicate error
+			return 0, common.ErrDuplicateEntry(categorymodel.EntityName, fieldName, err)
 		}
 		db.Rollback()
 		return 0, err
