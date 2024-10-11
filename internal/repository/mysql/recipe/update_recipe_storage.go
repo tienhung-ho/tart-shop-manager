@@ -6,7 +6,6 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm/clause"
 	"tart-shop-manager/internal/common"
-	commonrecover "tart-shop-manager/internal/common/recover"
 	recipemodel "tart-shop-manager/internal/entity/dtos/sql/recipe"
 	responseutil "tart-shop-manager/internal/util/response"
 )
@@ -14,13 +13,7 @@ import (
 func (s *mysqlRecipe) UpdateRecipe(ctx context.Context, cond map[string]interface{},
 	data *recipemodel.UpdateRecipe, morekeys ...string) (*recipemodel.Recipe, error) {
 
-	db := s.db.Begin()
-
-	if db.Error != nil {
-		return nil, common.ErrDB(db.Error)
-	}
-
-	defer commonrecover.RecoverTransaction(db)
+	db := s.getDB(ctx)
 
 	if err := db.WithContext(ctx).Model(&recipemodel.UpdateRecipe{}).Where(cond).
 		Clauses(clause.Locking{Strength: "UPDATE"}).
@@ -32,20 +25,18 @@ func (s *mysqlRecipe) UpdateRecipe(ctx context.Context, cond map[string]interfac
 			fieldName := responseutil.ExtractFieldFromError(err, recipemodel.EntityName) // Extract field causing the duplicate error
 			return nil, common.ErrDuplicateEntry(recipemodel.EntityName, fieldName, err)
 		}
-		db.Rollback()
+		//db.Rollback()
 		return nil, err
 	}
 
 	var record recipemodel.Recipe
 
-	if err := db.WithContext(ctx).Model(data).Select(recipemodel.SelectFields).
-		Where(cond).Preload("Product").First(&record).Error; err != nil {
-		db.Rollback()
-		return nil, common.ErrDB(err)
-	}
-
-	if err := db.Commit().Error; err != nil {
-		db.Rollback()
+	if err := db.WithContext(ctx).Model(data).Select(SelectFields).
+		Where(cond).
+		Preload("RecipeIngredients").
+		Preload("Product").
+		First(&record).Error; err != nil {
+		//db.Rollback()
 		return nil, common.ErrDB(err)
 	}
 

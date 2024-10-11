@@ -9,6 +9,7 @@ import (
 	"tart-shop-manager/internal/common"
 	recipemodel "tart-shop-manager/internal/entity/dtos/sql/recipe"
 	recipestorage "tart-shop-manager/internal/repository/mysql/recipe"
+	recipeingredientstorage "tart-shop-manager/internal/repository/mysql/recipe_ingredient"
 	recipecache "tart-shop-manager/internal/repository/redis/recipe"
 	recipebusiness "tart-shop-manager/internal/service/recipe"
 )
@@ -34,7 +35,8 @@ func UpdateRecipeHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 
 		store := recipestorage.NewMySQLRecipe(db)
 		cache := recipecache.NewRdbStorage(rdb)
-		biz := recipebusiness.NewUpdateRecipeBiz(store, cache)
+		recipeIngredientStore := recipeingredientstorage.NewMySQLRecipeIngredient(db)
+		biz := recipebusiness.NewUpdateRecipeBiz(store, cache, recipeIngredientStore)
 
 		record, err := biz.UpdateRecipe(c, map[string]interface{}{"recipe_id": id}, &updateRecord)
 

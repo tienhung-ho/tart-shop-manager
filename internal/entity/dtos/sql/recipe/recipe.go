@@ -3,18 +3,11 @@ package recipemodel
 import (
 	"tart-shop-manager/internal/common"
 	recipecachemodel "tart-shop-manager/internal/entity/dtos/redis/recipe"
+	recipeingredientmodel "tart-shop-manager/internal/entity/dtos/sql/recipe_ingredient"
 )
 
 var (
-	EntityName   = "Recipe"
-	SelectFields = []string{
-		"recipe_id",
-		"product_id",
-		"size",
-		"cost",
-		"description",
-		"status",
-	}
+	EntityName = "Recipe"
 )
 
 type product struct {
@@ -33,12 +26,13 @@ func (product) TableName() string {
 }
 
 type Recipe struct {
-	RecipeID    uint64   `gorm:"column:recipe_id;primaryKey;autoIncrement" json:"recipe_id"`
-	ProductID   uint64   `gorm:"column:product_id;not null" json:"product_id"`
-	Product     *product `gorm:"foreignKey:ProductID;references:ProductID" json:"product"` // Liên kết với Product
-	Size        string   `gorm:"column:size;type:enum('Small', 'Medium', 'Large');not null" json:"size"`
-	Cost        float64  `gorm:"column:cost;not null" json:"cost"`
-	Description string   `gorm:"column:description;type:text" json:"description"`
+	RecipeID          uint64                                   `gorm:"column:recipe_id;primaryKey;autoIncrement" json:"recipe_id"`
+	ProductID         uint64                                   `gorm:"column:product_id;not null" json:"product_id"`
+	Product           *product                                 `gorm:"foreignKey:ProductID;references:ProductID" json:"product"` // Liên kết với Product
+	Size              string                                   `gorm:"column:size;type:enum('Small', 'Medium', 'Large');not null" json:"size"`
+	Cost              float64                                  `gorm:"column:cost;not null" json:"cost"`
+	Description       string                                   `gorm:"column:description;type:text" json:"description"`
+	RecipeIngredients []recipeingredientmodel.RecipeIngredient `gorm:"foreignKey:RecipeID;references:RecipeID" json:"ingredients"`
 	common.CommonFields
 }
 

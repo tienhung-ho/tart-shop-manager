@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"tart-shop-manager/internal/common"
 	recipemodel "tart-shop-manager/internal/entity/dtos/sql/recipe"
+	ingredientstorage "tart-shop-manager/internal/repository/mysql/ingredient"
 	recipestorage "tart-shop-manager/internal/repository/mysql/recipe"
+	recipeingredientstorage "tart-shop-manager/internal/repository/mysql/recipe_ingredient"
 	recipebusiness "tart-shop-manager/internal/service/recipe"
 )
 
@@ -22,7 +24,10 @@ func CreateRecipeHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		store := recipestorage.NewMySQLRecipe(db)
-		biz := recipebusiness.NewCreateRecipeBusiness(store)
+		ingredientStore := ingredientstorage.NewMySQLIngredient(db)
+		recipeIngredientStore := recipeingredientstorage.NewMySQLRecipeIngredient(db)
+
+		biz := recipebusiness.NewCreateRecipeBusiness(store, ingredientStore, recipeIngredientStore)
 
 		recipeID, err := biz.CreateRecipe(c, &data)
 

@@ -1,28 +1,26 @@
-package recipestorage
+package recipeingredientstorage
 
-import "gorm.io/gorm"
-
-var (
-	SelectFields = []string{
-		"recipe_id",
-		"size",
-		"description",
-		"cost",
-		"status",
-	}
-	AllowedSortFields = map[string]bool{
-		"recipe_id":  true,
-		"created_at": true,
-		"updated_at": true,
-		"size":       true,
-		"cost":       true,
-	}
+import (
+	"context"
+	"gorm.io/gorm"
+	"tart-shop-manager/internal/common/trainsaction"
 )
 
-type mysqlRecipe struct {
+var ()
+
+type mysqlRecipeIngredient struct {
 	db *gorm.DB
 }
 
-func NewMySQLRecipe(db *gorm.DB) *mysqlRecipe {
-	return &mysqlRecipe{db}
+func NewMySQLRecipeIngredient(db *gorm.DB) *mysqlRecipeIngredient {
+	return &mysqlRecipeIngredient{db}
+}
+
+// Hàm hỗ trợ lấy *gorm.DB từ context nếu có transaction
+func (s *mysqlRecipeIngredient) getDB(ctx context.Context) *gorm.DB {
+	tx, ok := ctx.Value(trainsaction.TransactionKey).(*gorm.DB)
+	if ok {
+		return tx
+	}
+	return s.db
 }

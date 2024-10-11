@@ -41,7 +41,7 @@ func (biz *getRecipeBusiness) GetRecipe(ctx context.Context, cond map[string]int
 	record, err = biz.store.GetRecipe(ctx, cond, morekeys...)
 
 	if err != nil {
-		return nil, common.ErrCannotGetEntity(recipemodel.EntityName, err)
+		return nil, common.ErrNotFoundEntity(recipemodel.EntityName, err)
 	}
 
 	if record != nil {
