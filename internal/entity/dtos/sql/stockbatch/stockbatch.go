@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+var (
+	EntityName = "StockBatch"
+)
+
 type StockBatch struct {
 	StockBatchID   uint      `gorm:"column:stockbatch_id;primaryKey;autoIncrement" json:"stockbatch_id"`
 	Quantity       int       `gorm:"column:quantity;not null" json:"quantity"`

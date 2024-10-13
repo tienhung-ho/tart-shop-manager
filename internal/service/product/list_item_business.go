@@ -3,6 +3,7 @@ package productbusiness
 import (
 	"context"
 	"errors"
+	"fmt"
 	"gorm.io/gorm"
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
@@ -41,6 +42,7 @@ func (biz *listItemBusiness) ListItem(ctx context.Context, cond map[string]inter
 		Paging:     pagingCopy,
 		Filter:     filterCopy,
 		MoreKeys:   morekeys,
+		KeyType:    fmt.Sprintf("List:%s:", productmodel.EntityName),
 	})
 	if err != nil {
 		return nil, common.ErrCannotGenerateKey(productmodel.EntityName, err)

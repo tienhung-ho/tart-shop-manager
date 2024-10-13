@@ -13,6 +13,7 @@ import (
 type DeleteRecipeStorage interface {
 	GetRecipe(ctx context.Context, cond map[string]interface{}, morekeys ...string) (*recipemodel.Recipe, error)
 	DeleteRecipe(ctx context.Context, cond map[string]interface{}, morekeys ...string) error
+	Transaction(ctx context.Context, fn func(txCtx context.Context) error) error
 }
 
 type DeleteRecipeCache interface {
@@ -20,12 +21,13 @@ type DeleteRecipeCache interface {
 }
 
 type deleteRecipeBusiness struct {
-	store DeleteRecipeStorage
-	cache DeleteRecipeCache
+	store                 DeleteRecipeStorage
+	cache                 DeleteRecipeCache
+	recipeIngredientStore RecipeIngredientStorage
 }
 
-func NewDeleteRecipeBiz(store DeleteRecipeStorage, cache DeleteRecipeCache) *deleteRecipeBusiness {
-	return &deleteRecipeBusiness{store, cache}
+func NewDeleteRecipeBiz(store DeleteRecipeStorage, cache DeleteRecipeCache, recipeIngredientStore RecipeIngredientStorage) *deleteRecipeBusiness {
+	return &deleteRecipeBusiness{store, cache, recipeIngredientStore}
 }
 
 func (biz *deleteRecipeBusiness) DeleteRecipe(ctx context.Context, cond map[string]interface{}, morekeys ...string) error {
@@ -40,9 +42,25 @@ func (biz *deleteRecipeBusiness) DeleteRecipe(ctx context.Context, cond map[stri
 		return common.ErrNotFoundEntity(recipemodel.EntityName, err)
 	}
 
-	if err := biz.store.DeleteRecipe(ctx, map[string]interface{}{"recipe_id": record.RecipeID}, morekeys...); err != nil {
-		return common.ErrCannotDeleteEntity(recipemodel.EntityName, err)
-	}
+	err = biz.store.Transaction(ctx, func(txCtx context.Context) error {
+
+		if err := biz.store.DeleteRecipe(ctx, map[string]interface{}{"recipe_id": record.RecipeID}, morekeys...); err != nil {
+			return common.ErrCannotDeleteEntity(recipemodel.EntityName, err)
+		}
+
+		// Lấy danh sách ingredient_id hiện có
+		existingIngredients := record.RecipeIngredients
+		existingIngredientIDs := make([]uint64, len(existingIngredients))
+		for i, ing := range existingIngredients {
+			existingIngredientIDs[i] = ing.IngredientID
+		}
+
+		if err := biz.recipeIngredientStore.RemoveRecipeIngredients(ctx, record.RecipeID, existingIngredientIDs); err != nil {
+			return common.ErrCannotDeleteEntity(recipemodel.EntityName, err)
+		}
+
+		return nil
+	})
 
 	// 6. Xóa cache sản phẩm
 	var pagging paggingcommon.Paging

@@ -15,6 +15,7 @@ type CacheParams struct {
 	Paging     paggingcommon.Paging
 	Filter     commonfilter.Filter
 	MoreKeys   []string
+	KeyType    string // Thêm trường này
 }
 
 func GenerateKey(params CacheParams) (string, error) {
@@ -31,12 +32,14 @@ func GenerateKey(params CacheParams) (string, error) {
 		Paging     paggingcommon.Paging `json:"paging"`
 		Filter     commonfilter.Filter  `json:"filter"`
 		MoreKeys   []string             `json:"more_keys"`
+		KeyType    string               `json:"key_type"`
 	}{
 		EntityName: params.EntityName,
 		Cond:       condBytes,
 		Paging:     params.Paging,
 		Filter:     params.Filter,
 		MoreKeys:   params.MoreKeys,
+		KeyType:    params.KeyType, // Bao gồm KeyType
 	}
 
 	jsonBytes, err := json.Marshal(keyData)
@@ -45,7 +48,7 @@ func GenerateKey(params CacheParams) (string, error) {
 	}
 
 	hash := md5.Sum(jsonBytes)
-	return fmt.Sprintf("cache:%x", hash), nil
+	return fmt.Sprintf("cache:%s:%x", params.KeyType, hash), nil // Thêm KeyType vào prefix
 }
 
 func marshalMap(m map[string]interface{}) ([]byte, error) {

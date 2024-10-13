@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
 	"tart-shop-manager/internal/common"
 	productcachemodel "tart-shop-manager/internal/entity/dtos/redis/product"
 	productmodel "tart-shop-manager/internal/entity/dtos/sql/product"
@@ -18,6 +19,8 @@ func (r *rdbStorage) SaveProduct(ctx context.Context, data interface{}, morekeys
 	key := morekeys[0]
 	var record []byte
 	var err error
+
+	log.Print(key)
 
 	switch v := data.(type) {
 	case *productcachemodel.CreateProduct:

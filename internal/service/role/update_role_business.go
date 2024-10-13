@@ -2,6 +2,7 @@ package rolebusiness
 
 import (
 	"context"
+	"log"
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
@@ -35,7 +36,7 @@ func NewUpdateRolebiz(store UpdateRoleStorage, cache UpdateRoleCache, perStore L
 func (biz *updateRoleBusiness) UpdateRole(ctx context.Context, cond map[string]interface{}, data *rolemodel.UpdateRole, morekeys ...string) error {
 
 	record, err := biz.store.GetRole(ctx, cond, morekeys...)
-
+	log.Print(record)
 	if err != nil {
 		return common.ErrNotFoundEntity(rolemodel.EntityName, err)
 	}
@@ -82,7 +83,16 @@ func (biz *updateRoleBusiness) UpdateRole(ctx context.Context, cond map[string]i
 	}
 
 	// Add policies for the role using Authorization interface
-	if err := biz.auth.AddPoliciesForRole(role.Name, role.Permissions); err != nil {
+
+	var name string
+
+	if role.Name != "" {
+		name = role.Name
+	} else {
+		name = record.Name
+	}
+
+	if err := biz.auth.AddPoliciesForRole(name, role.Permissions); err != nil {
 		return err
 	}
 

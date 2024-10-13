@@ -2,6 +2,7 @@ package common
 
 import (
 	"gorm.io/gorm"
+	"log"
 	"reflect"
 	"time"
 )
@@ -30,20 +31,24 @@ func (cf *CommonFields) BeforeUpdate(tx *gorm.DB) (err error) {
 	if email, ok := tx.Statement.Context.Value("email").(string); ok {
 		cf.UpdatedBy = email
 
-		// Get the destination object
-		dest := reflect.ValueOf(tx.Statement.Dest).Elem()
+		log.Print("Updating UpdatedBy field")
+		// Get the destination object and handle it with reflect.Indirect to avoid pointer issues
+		dest := reflect.Indirect(reflect.ValueOf(tx.Statement.Dest))
 
 		// Check if the struct has an UpdatedBy field
-		if updatedByField := dest.FieldByName("UpdatedBy"); updatedByField.IsValid() && updatedByField.CanSet() {
-			// Set the value
-			updatedByField.SetString(email)
+		if dest.Kind() == reflect.Struct {
+			if updatedByField := dest.FieldByName("UpdatedBy"); updatedByField.IsValid() && updatedByField.CanSet() {
+				// Set the value
+				updatedByField.SetString(email)
 
-			// Use GORM's Update method to ensure the change is persisted
-			tx.Update("updated_by", email)
+				// Use GORM's Update method to ensure the change is persisted
+				tx.Statement.SetColumn("updated_by", email)
+			}
+		} else {
+			log.Print("The destination object is not a struct")
 		}
 	} else {
-		// Consider adding proper error handling or logging here
-		// log.Printf("Email is missing from context")
+		log.Print("Email is missing from context")
 	}
 
 	return nil

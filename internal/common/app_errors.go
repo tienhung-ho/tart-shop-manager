@@ -279,3 +279,12 @@ func ErrCloudServiceUnavailable(err error) *AppError {
 		"Cloud service is unavailable",
 		err.Error(), "ERR_CLOUD_SERVICE_UNAVAILABLE")
 }
+
+// common/errors.go
+
+func ErrForeignKeyConstraint(entity, field string, err error) *AppError {
+	return NewErrorResponse(err,
+		fmt.Sprintf("Invalid %s: %s does not exist.", field, entity),
+		fmt.Sprintf("ErrForeignKeyConstraint%s%s", entity, strings.Title(field)),
+		entity)
+}

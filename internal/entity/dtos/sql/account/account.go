@@ -50,6 +50,7 @@ func (a Account) ToCreateAccount() *accountrdbmodel.CreateAccountRdb {
 		Password:  a.Password,
 		Email:     a.Email,
 		Gender:    a.Gender,
+		Role:      a.Role,
 		CommonFields: &common.CommonFields{
 			CreatedAt: a.CreatedAt,
 			UpdatedAt: a.UpdatedAt,
