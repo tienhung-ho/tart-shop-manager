@@ -10,7 +10,7 @@ import (
 	responseutil "tart-shop-manager/internal/util/response"
 )
 
-func (s *mysqlIngredient) CreateIngredient(ctx context.Context, ingredient *ingredientmodel.CreateIngredient, morekeys ...string) (uint, error) {
+func (s *mysqlIngredient) CreateIngredient(ctx context.Context, ingredient *ingredientmodel.CreateIngredient, morekeys ...string) (uint64, error) {
 
 	db := s.db.Begin()
 

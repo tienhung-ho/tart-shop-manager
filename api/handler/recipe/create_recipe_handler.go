@@ -8,7 +8,7 @@ import (
 	recipemodel "tart-shop-manager/internal/entity/dtos/sql/recipe"
 	ingredientstorage "tart-shop-manager/internal/repository/mysql/ingredient"
 	recipestorage "tart-shop-manager/internal/repository/mysql/recipe"
-	recipeingredientstorage "tart-shop-manager/internal/repository/mysql/recipe_ingredient"
+	recipeingredientstorage "tart-shop-manager/internal/repository/mysql/recipeIngredient"
 	recipebusiness "tart-shop-manager/internal/service/recipe"
 )
 

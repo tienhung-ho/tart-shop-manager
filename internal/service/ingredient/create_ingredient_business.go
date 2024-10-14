@@ -9,7 +9,7 @@ import (
 
 type CreateIngredientStorage interface {
 	GetIngredient(ctx context.Context, cond map[string]interface{}, morekeys ...string) (*ingredientmodel.Ingredient, error)
-	CreateIngredient(ctx context.Context, ingredient *ingredientmodel.CreateIngredient, morekeys ...string) (uint, error)
+	CreateIngredient(ctx context.Context, ingredient *ingredientmodel.CreateIngredient, morekeys ...string) (uint64, error)
 }
 
 type createIngredientBusiness struct {
@@ -20,7 +20,7 @@ func NewCreateIngredientBiz(store CreateIngredientStorage) *createIngredientBusi
 	return &createIngredientBusiness{store: store}
 }
 
-func (biz *createIngredientBusiness) CreateIngredient(ctx context.Context, ingredient *ingredientmodel.CreateIngredient, morekeys ...string) (uint, error) {
+func (biz *createIngredientBusiness) CreateIngredient(ctx context.Context, ingredient *ingredientmodel.CreateIngredient, morekeys ...string) (uint64, error) {
 
 	// Kiểm tra xem ingredient đã tồn tại hay chưa
 	record, err := biz.store.GetIngredient(ctx, map[string]interface{}{"name": ingredient.Name})

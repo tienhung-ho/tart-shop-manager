@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"tart-shop-manager/internal/common"
 	recipestorage "tart-shop-manager/internal/repository/mysql/recipe"
-	recipeingredientstorage "tart-shop-manager/internal/repository/mysql/recipe_ingredient"
+	recipeingredientstorage "tart-shop-manager/internal/repository/mysql/recipeIngredient"
 	recipecache "tart-shop-manager/internal/repository/redis/recipe"
 	recipebusiness "tart-shop-manager/internal/service/recipe"
 )

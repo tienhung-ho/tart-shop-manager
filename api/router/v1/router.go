@@ -15,6 +15,7 @@ import (
 	recipev1 "tart-shop-manager/api/router/v1/recipe"
 	rolev1 "tart-shop-manager/api/router/v1/role"
 	stockbatchv1 "tart-shop-manager/api/router/v1/stockbatch"
+	supplyorderv1 "tart-shop-manager/api/router/v1/supplyOrder"
 )
 
 func NewRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
@@ -62,6 +63,10 @@ func NewRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
 		recipe := v1.Group("/recipe")
 		{
 			recipev1.RecipeRouter(recipe, db, rdb)
+		}
+		supplyOrder := v1.Group("/supply-order")
+		{
+			supplyorderv1.SupplyOrderRouter(supplyOrder, db, rdb)
 		}
 	}
 	return r
