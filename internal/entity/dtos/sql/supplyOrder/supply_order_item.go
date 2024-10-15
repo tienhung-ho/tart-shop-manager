@@ -5,6 +5,15 @@ import (
 	stockbatchmodel "tart-shop-manager/internal/entity/dtos/sql/stockbatch"
 )
 
+type CreateIngredient struct {
+	IngredientID   uint64            `json:"ingredient_id"`
+	Unit           string            `json:"unit"`
+	Quantity       int               `json:"quantity"`
+	Price          float64           `json:"price"`
+	ExpirationDate common.CustomDate `json:"expiration_date"`
+	ReceivedDate   common.CustomDate `json:"received_date"`
+}
+
 type SupplyOrderItem struct {
 	SupplyOrderItemID uint    `gorm:"column:supplyorderitem_id;primaryKey;autoIncrement" json:"supplyorderitem_id"`
 	Price             float64 `gorm:"column:price;type:decimal(10,2);not null" json:"price"`
@@ -15,9 +24,8 @@ type SupplyOrderItem struct {
 	StockBatchID      uint    `gorm:"column:stockbatch_id;not null;index" json:"stockbatch_id"`
 
 	// Quan hệ với các bảng khác
-	//Ingredient  ingredientmodel.Ingredient `gorm:"foreignKey:IngredientID;references:IngredientID" json:"ingredient"`
-	SupplyOrder SupplyOrder                `gorm:"belongsTo:SupplyOrder;foreignKey:SupplyOrderID;references:SupplyOrderID" json:"supply_order"`
-	StockBatch  stockbatchmodel.StockBatch `gorm:"foreignKey:StockBatchID;references:StockBatchID" json:"stock_batch"`
+	//SupplyOrder SupplyOrder                `gorm:"belongsTo:SupplyOrder;foreignKey:SupplyOrderID;references:SupplyOrderID" json:"supply_order"`
+	StockBatch *stockbatchmodel.StockBatch `gorm:"foreignKey:StockBatchID;references:StockBatchID" json:"stock_batch"`
 
 	// Trường chung
 	common.CommonFields

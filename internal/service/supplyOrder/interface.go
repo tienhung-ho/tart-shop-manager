@@ -6,7 +6,7 @@ import (
 	paggingcommon "tart-shop-manager/internal/common/paging"
 	ingredientmodel "tart-shop-manager/internal/entity/dtos/sql/ingredient"
 	stockbatchmodel "tart-shop-manager/internal/entity/dtos/sql/stockbatch"
-	supplyordermodel "tart-shop-manager/internal/entity/dtos/sql/supplyOrder"
+	"tart-shop-manager/internal/entity/dtos/sql/supplyOrder"
 )
 
 type IngredientStorage interface {
@@ -21,4 +21,5 @@ type CreateSupplyOrderItemStorage interface {
 
 type StockBatchStorage interface {
 	CreateStockBatch(ctx context.Context, data *stockbatchmodel.CreateStockBatch, morekeys ...string) (uint, error)
+	CreateStockBatches(ctx context.Context, data []stockbatchmodel.CreateStockBatch) ([]uint, error)
 }

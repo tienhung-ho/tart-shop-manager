@@ -75,29 +75,34 @@ func (biz *createSupplyOrderBusiness) CreateSupplyOrder(ctx context.Context, dat
 			return common.ErrCannotCreateEntity(supplyordermodel.EntityName, err)
 		}
 
-		var supOrderItems []supplyordermodel.CreateSupplyOrderItem
+		var stockBatches []stockbatchmodel.CreateStockBatch
 		for _, item := range data.Ingredients {
-			stockID, err := biz.storeStockBatch.CreateStockBatch(txCtx, &stockbatchmodel.CreateStockBatch{
+			stockBatches = append(stockBatches, stockbatchmodel.CreateStockBatch{
 				Quantity:       item.Quantity,
 				ExpirationDate: item.ExpirationDate,
 				ReceivedDate:   item.ReceivedDate,
 				IngredientID:   uint(item.IngredientID),
 			})
+		}
+		// Thực hiện bulk insert StockBatch
+		stockIDs, err := biz.storeStockBatch.CreateStockBatches(txCtx, stockBatches)
+		if err != nil {
+			return common.ErrCannotCreateEntity(stockbatchmodel.EntityName, err)
+		}
 
-			if err != nil {
-				return common.ErrCannotCreateEntity(stockbatchmodel.EntityName, err)
-			}
-
+		// Chuẩn bị dữ liệu cho SupplyOrderItem
+		var supOrderItems []supplyordermodel.CreateSupplyOrderItem
+		for i, item := range data.Ingredients {
 			supOrderItems = append(supOrderItems, supplyordermodel.CreateSupplyOrderItem{
 				IngredientID:  item.IngredientID,
 				Price:         item.Price,
 				Quantity:      item.Quantity,
 				Unit:          item.Unit,
 				SupplyOrderID: recordID,
-				StockBatchID:  stockID,
+				StockBatchID:  stockIDs[i],
 			})
-
 		}
+
 		err = biz.storeItem.CreateSupplyOrderItem(txCtx, supOrderItems)
 		if err != nil {
 			return common.ErrCannotCreateEntity("SupplyOrderItem", err)

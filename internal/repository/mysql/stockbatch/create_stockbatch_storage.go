@@ -45,3 +45,54 @@ func (s *mysqlStockBatch) CreateStockBatch(ctx context.Context, data *stockbatch
 
 	return data.StockBatchID, nil
 }
+
+func (s *mysqlStockBatch) CreateStockBatches(ctx context.Context, data []stockbatchmodel.CreateStockBatch) ([]uint, error) {
+	if len(data) == 0 {
+		return nil, nil
+	}
+
+	tx := s.db.Begin()
+	if tx.Error != nil {
+		return nil, common.ErrDB(tx.Error)
+	}
+
+	defer commonrecover.RecoverTransaction(tx)
+
+	// Thực hiện bulk insert
+	if err := tx.WithContext(ctx).Create(&data).Error; err != nil {
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) {
+			switch mysqlErr.Number {
+			case 1062:
+				// Lỗi trùng lặp
+				fieldName := responseutil.ExtractFieldFromError(err, stockbatchmodel.EntityName)
+				tx.Rollback()
+				return nil, common.ErrDuplicateEntry(stockbatchmodel.EntityName, fieldName, err)
+			case 1452:
+				// Lỗi khóa ngoại
+				tx.Rollback()
+				return nil, common.ErrForeignKeyConstraint(stockbatchmodel.EntityName, "ingredient_id", err)
+			default:
+				// Các lỗi MySQL khác
+				tx.Rollback()
+				return nil, common.ErrDB(err)
+			}
+		}
+		tx.Rollback()
+		return nil, common.ErrDB(err)
+	}
+
+	// Commit transaction
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return nil, common.ErrDB(err)
+	}
+
+	// Thu thập các StockBatchID đã được tạo
+	stockIDs := make([]uint, len(data))
+	for i, batch := range data {
+		stockIDs[i] = batch.StockBatchID
+	}
+
+	return stockIDs, nil
+}

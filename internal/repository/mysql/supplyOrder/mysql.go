@@ -7,6 +7,17 @@ import (
 	"tart-shop-manager/internal/common/trainsaction"
 )
 
+var (
+	SelectFields = []string{
+		"supplyorder_id",
+		"order_date",
+		"description",
+		"total_amount",
+		"supplier_id",
+		"status",
+	}
+)
+
 type mysqlSupplyOrder struct {
 	db *gorm.DB
 }

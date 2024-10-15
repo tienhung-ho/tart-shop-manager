@@ -8,5 +8,6 @@ import (
 )
 
 func SupplyOrderRouter(supplyOrder *gin.RouterGroup, db *gorm.DB, rdb *redis.Client) {
+	supplyOrder.GET("/:id", supplyorderhandler.GetSupplyOrderHandler(db, rdb))
 	supplyOrder.POST("/", supplyorderhandler.CreateSupplyOrderHandler(db, rdb))
 }

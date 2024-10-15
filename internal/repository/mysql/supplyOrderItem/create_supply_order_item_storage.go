@@ -3,7 +3,7 @@ package supplyorderitemstorage
 import (
 	"context"
 	"tart-shop-manager/internal/common"
-	supplyordermodel "tart-shop-manager/internal/entity/dtos/sql/supplyOrder"
+	"tart-shop-manager/internal/entity/dtos/sql/supplyOrder"
 )
 
 func (s *mysqlSupplyOrderItem) CreateSupplyOrderItem(ctx context.Context, item []supplyordermodel.CreateSupplyOrderItem) error {
