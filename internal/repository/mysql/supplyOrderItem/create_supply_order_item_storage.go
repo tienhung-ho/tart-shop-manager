@@ -6,7 +6,7 @@ import (
 	"tart-shop-manager/internal/entity/dtos/sql/supplyOrder"
 )
 
-func (s *mysqlSupplyOrderItem) CreateSupplyOrderItem(ctx context.Context, item []supplyordermodel.CreateSupplyOrderItem) error {
+func (s *mysqlSupplyOrderItem) CreateSupplyOrderItems(ctx context.Context, item []supplyordermodel.CreateSupplyOrderItem) error {
 	if len(item) == 0 {
 		return nil
 	}

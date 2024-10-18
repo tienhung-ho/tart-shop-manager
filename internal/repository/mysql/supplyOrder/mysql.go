@@ -16,6 +16,13 @@ var (
 		"supplier_id",
 		"status",
 	}
+
+	AllowedSortFields = map[string]bool{
+		"order_date":     true,
+		"created_at":     true,
+		"updated_at":     true,
+		"supplyorder_id": true,
+	}
 )
 
 type mysqlSupplyOrder struct {

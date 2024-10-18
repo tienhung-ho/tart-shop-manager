@@ -13,6 +13,14 @@ import (
 func (s *mysqlSupplyOrder) CreateSupplyOrder(ctx context.Context, data *supplyordermodel.CreateSupplyOrder) (uint64, error) {
 	db := s.getDB(ctx)
 
+	email, ok := ctx.Value("email").(string)
+
+	if !ok {
+		data.UpdatedBy = "system" // Hoặc giá trị mặc định khác
+	}
+
+	data.UpdatedBy = email
+
 	if err := db.Create(&data).Error; err != nil {
 		var mysqlErr *mysql.MySQLError
 		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
