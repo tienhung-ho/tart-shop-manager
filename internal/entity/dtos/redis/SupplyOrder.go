@@ -7,11 +7,11 @@ import (
 )
 
 type CreateSupplyOrderCache struct {
-	SupplyOrderID uint      `json:"supply_order_id"`
+	SupplyOrderID uint64    `json:"supply_order_id"`
 	OrderDate     time.Time `json:"order_date"`
 	Description   string    `json:"description"`
 	TotalAmount   float64   `json:"total_amount"`
-	SupplierID    uint      `json:"supplier_id"`
+	SupplierID    uint64    `json:"supplier_id"`
 	common.CommonFields
 	//Supplier      Supplier       `gorm:"foreignKey:SupplierID" json:"supplier"`
 	SupplyOrderItems []supplyordermodel.SupplyOrderItem  `json:"supplyorder_item"`

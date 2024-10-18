@@ -11,7 +11,7 @@ type CreateSupplyOrderItem struct {
 	Unit              string  `gorm:"column:unit;type:varchar(200);not null" json:"unit"`
 	IngredientID      uint64  `gorm:"column:ingredient_id;not null;index" json:"ingredient_id"`
 	SupplyOrderID     uint64  `gorm:"column:supplyorder_id;unique;not null;index" json:"supplyorder_id"`
-	StockBatchID      uint    `gorm:"column:stockbatch_id;not null;index" json:"stockbatch_id"`
+	StockBatchID      uint64  `gorm:"column:stockbatch_id;not null;index" json:"stockbatch_id"`
 	common.CommonFields
 }
 

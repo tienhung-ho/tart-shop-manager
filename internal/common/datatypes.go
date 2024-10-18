@@ -125,17 +125,17 @@ type CustomDate struct {
 	time.Time
 }
 
-const dateFormat = "2006-01-02"
+const DateFormat = "2006-01-02"
 
 // Marshal JSON to ensure correct format when returning to client
 func (cd *CustomDate) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("\"%s\"", cd.Time.Format(dateFormat))), nil
+	return []byte(fmt.Sprintf("\"%s\"", cd.Time.Format(DateFormat))), nil
 }
 
 // Unmarshal JSON to bind the incoming date string to time.Time
 func (cd *CustomDate) UnmarshalJSON(b []byte) error {
 	strInput := strings.Trim(string(b), "\"")
-	parsedTime, err := time.Parse(dateFormat, strInput)
+	parsedTime, err := time.Parse(DateFormat, strInput)
 	if err != nil {
 		return errors.New("invalid date format, use YYYY-MM-DD")
 	}
@@ -145,7 +145,7 @@ func (cd *CustomDate) UnmarshalJSON(b []byte) error {
 
 // Implement the driver.Valuer interface for database serialization
 func (cd CustomDate) Value() (driver.Value, error) {
-	return cd.Time.Format(dateFormat), nil
+	return cd.Time.Format(DateFormat), nil
 }
 
 // Implement the sql.Scanner interface for database deserialization
@@ -160,7 +160,7 @@ func (cd *CustomDate) Scan(value interface{}) error {
 		return errors.New("failed to scan date field")
 	}
 
-	parsedTime, err := time.Parse(dateFormat, str)
+	parsedTime, err := time.Parse(DateFormat, str)
 	if err != nil {
 		return err
 	}

@@ -10,7 +10,7 @@ import (
 	responseutil "tart-shop-manager/internal/util/response"
 )
 
-func (s *mysqlStockBatch) CreateStockBatch(ctx context.Context, data *stockbatchmodel.CreateStockBatch, morekeys ...string) (uint, error) {
+func (s *mysqlStockBatch) CreateStockBatch(ctx context.Context, data *stockbatchmodel.CreateStockBatch, morekeys ...string) (uint64, error) {
 
 	db := s.db.Begin()
 
@@ -46,7 +46,7 @@ func (s *mysqlStockBatch) CreateStockBatch(ctx context.Context, data *stockbatch
 	return data.StockBatchID, nil
 }
 
-func (s *mysqlStockBatch) CreateStockBatches(ctx context.Context, data []stockbatchmodel.CreateStockBatch) ([]uint, error) {
+func (s *mysqlStockBatch) CreateStockBatches(ctx context.Context, data []stockbatchmodel.CreateStockBatch) ([]uint64, error) {
 	if len(data) == 0 {
 		return nil, nil
 	}
@@ -89,7 +89,7 @@ func (s *mysqlStockBatch) CreateStockBatches(ctx context.Context, data []stockba
 	}
 
 	// Thu thập các StockBatchID đã được tạo
-	stockIDs := make([]uint, len(data))
+	stockIDs := make([]uint64, len(data))
 	for i, batch := range data {
 		stockIDs[i] = batch.StockBatchID
 	}
