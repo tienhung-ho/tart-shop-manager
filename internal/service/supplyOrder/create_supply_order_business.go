@@ -35,7 +35,7 @@ func (biz *createSupplyOrderBusiness) CreateSupplyOrder(ctx context.Context, dat
 	ingredientIDs := make([]uint64, len(data.Ingredients))
 	for i, ing := range data.Ingredients {
 		ingredientIDs[i] = ing.IngredientID
-		totalAmount += ing.Price
+		totalAmount += ing.Price * float64(ing.Quantity)
 	}
 
 	// Sử dụng hàm ListItem để lấy danh sách nguyên liệu tồn tại
@@ -81,7 +81,7 @@ func (biz *createSupplyOrderBusiness) CreateSupplyOrder(ctx context.Context, dat
 				Quantity:       item.Quantity,
 				ExpirationDate: item.ExpirationDate,
 				ReceivedDate:   item.ReceivedDate,
-				IngredientID:   uint(item.IngredientID),
+				IngredientID:   item.IngredientID,
 			})
 		}
 		// Thực hiện bulk insert StockBatch
@@ -103,7 +103,7 @@ func (biz *createSupplyOrderBusiness) CreateSupplyOrder(ctx context.Context, dat
 			})
 		}
 
-		err = biz.storeItem.CreateSupplyOrderItem(txCtx, supOrderItems)
+		err = biz.storeItem.CreateSupplyOrderItems(txCtx, supOrderItems)
 		if err != nil {
 			return common.ErrCannotCreateEntity("SupplyOrderItem", err)
 		}

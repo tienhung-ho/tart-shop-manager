@@ -16,10 +16,15 @@ type IngredientStorage interface {
 }
 
 type CreateSupplyOrderItemStorage interface {
-	CreateSupplyOrderItem(ctx context.Context, data []supplyordermodel.CreateSupplyOrderItem) error
+	CreateSupplyOrderItems(ctx context.Context, item []supplyordermodel.CreateSupplyOrderItem) error
+	UpdateSupplyOrderItems(ctx context.Context, items []supplyordermodel.UpdateSupplyOrderItem) error
+	DeleteSupplyOrderItems(ctx context.Context, supplyOrderItemIDs []uint64) error
 }
 
 type StockBatchStorage interface {
-	CreateStockBatch(ctx context.Context, data *stockbatchmodel.CreateStockBatch, morekeys ...string) (uint, error)
-	CreateStockBatches(ctx context.Context, data []stockbatchmodel.CreateStockBatch) ([]uint, error)
+	CreateStockBatch(ctx context.Context, data *stockbatchmodel.CreateStockBatch, morekeys ...string) (uint64, error)
+	CreateStockBatches(ctx context.Context, data []stockbatchmodel.CreateStockBatch) ([]uint64, error)
+	UpdateStockBatches(ctx context.Context, cond map[string]interface{}, data []stockbatchmodel.UpdateStockBatch) ([]uint64, error)
+	GetStockBatch(ctx context.Context, stockBatchID uint64) (*stockbatchmodel.StockBatch, error)
+	DeleteStockBatches(ctx context.Context, stockBatchIDs []uint64) error
 }
