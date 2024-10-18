@@ -7,7 +7,7 @@ import (
 )
 
 type CreateStockBatchStorage interface {
-	CreateStockBatch(ctx context.Context, data *stockbatchmodel.CreateStockBatch, morekeys ...string) (uint, error)
+	CreateStockBatch(ctx context.Context, data *stockbatchmodel.CreateStockBatch, morekeys ...string) (uint64, error)
 }
 
 type createStockBatchBusiness struct {
@@ -18,7 +18,7 @@ func NewCreateStockBatchBiz(store CreateStockBatchStorage) *createStockBatchBusi
 	return &createStockBatchBusiness{store: store}
 }
 
-func (biz *createStockBatchBusiness) CreateStockBatch(ctx context.Context, data *stockbatchmodel.CreateStockBatch, morekeys ...string) (uint, error) {
+func (biz *createStockBatchBusiness) CreateStockBatch(ctx context.Context, data *stockbatchmodel.CreateStockBatch, morekeys ...string) (uint64, error) {
 
 	recordID, err := biz.store.CreateStockBatch(ctx, data, morekeys...)
 
