@@ -1,4 +1,4 @@
-package productcache
+package supplyordercache
 
 import (
 	"context"
@@ -29,6 +29,6 @@ func (c *rdbStorage) DeleteListCache(ctx context.Context, entityName string) err
 			return common.ErrDB(err)
 		}
 	}
-	
+
 	return nil
 }
