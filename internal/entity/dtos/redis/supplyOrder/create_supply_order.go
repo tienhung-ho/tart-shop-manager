@@ -1,4 +1,4 @@
-package supplyordercachemodel
+package supplyOrder
 
 import (
 	"tart-shop-manager/internal/common"
