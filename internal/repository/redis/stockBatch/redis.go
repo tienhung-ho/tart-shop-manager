@@ -1,4 +1,4 @@
-package rolecache
+package stockbatchcache
 
 import "github.com/redis/go-redis/v9"
 
