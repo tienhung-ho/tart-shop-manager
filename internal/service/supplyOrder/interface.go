@@ -25,6 +25,6 @@ type StockBatchStorage interface {
 	CreateStockBatch(ctx context.Context, data *stockbatchmodel.CreateStockBatch, morekeys ...string) (uint64, error)
 	CreateStockBatches(ctx context.Context, data []stockbatchmodel.CreateStockBatch) ([]uint64, error)
 	UpdateStockBatches(ctx context.Context, cond map[string]interface{}, data []stockbatchmodel.UpdateStockBatch) ([]uint64, error)
-	GetStockBatch(ctx context.Context, stockBatchID uint64) (*stockbatchmodel.StockBatch, error)
+	GetStockBatch(ctx context.Context, cond map[string]interface{}) (*stockbatchmodel.StockBatch, error)
 	DeleteStockBatches(ctx context.Context, stockBatchIDs []uint64) error
 }

@@ -5,7 +5,7 @@ import (
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
-	supplyordercachemodel "tart-shop-manager/internal/entity/dtos/redis"
+	supplyordercachemodel "tart-shop-manager/internal/entity/dtos/redis/supplyOrder"
 	supplyordermodel "tart-shop-manager/internal/entity/dtos/sql/supplyOrder"
 	cacheutil "tart-shop-manager/internal/util/cache"
 )
@@ -40,7 +40,7 @@ func (biz *getSupplyOrderBusiness) GetSupplyOrder(ctx context.Context, cond map[
 	}
 
 	record, err = biz.store.GetSupplyOrder(ctx, cond)
-	
+
 	if err != nil {
 		return nil, common.ErrCannotGetEntity(supplyordermodel.EntityName, err)
 	}

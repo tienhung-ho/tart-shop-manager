@@ -26,3 +26,5 @@ go.work.sum
 
 /vendor/
 init.sql
+
+git_add_commit.sh

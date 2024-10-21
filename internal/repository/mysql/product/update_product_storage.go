@@ -7,7 +7,6 @@ import (
 	"gorm.io/gorm/clause"
 	"tart-shop-manager/internal/common"
 	commonrecover "tart-shop-manager/internal/common/recover"
-	ingredientmodel "tart-shop-manager/internal/entity/dtos/sql/ingredient"
 	productmodel "tart-shop-manager/internal/entity/dtos/sql/product"
 	responseutil "tart-shop-manager/internal/util/response"
 )
@@ -29,8 +28,8 @@ func (s *mysqlProduct) UpdateProduct(ctx context.Context, cond map[string]interf
 		var mysqlErr *mysql.MySQLError
 		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
 
-			fieldName := responseutil.ExtractFieldFromError(err, ingredientmodel.EntityName) // Extract field causing the duplicate error
-			return nil, common.ErrDuplicateEntry(ingredientmodel.EntityName, fieldName, err)
+			fieldName := responseutil.ExtractFieldFromError(err, productmodel.EntityName) // Extract field causing the duplicate error
+			return nil, common.ErrDuplicateEntry(productmodel.EntityName, fieldName, err)
 		}
 		db.Rollback()
 		return nil, err

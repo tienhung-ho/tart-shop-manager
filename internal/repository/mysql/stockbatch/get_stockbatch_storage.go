@@ -8,13 +8,13 @@ import (
 	stockbatchmodel "tart-shop-manager/internal/entity/dtos/sql/stockbatch"
 )
 
-func (s *mysqlStockBatch) GetStockBatch(ctx context.Context, stockBatchID uint64) (*stockbatchmodel.StockBatch, error) {
+func (s *mysqlStockBatch) GetStockBatch(ctx context.Context, cond map[string]interface{}) (*stockbatchmodel.StockBatch, error) {
 	var stockBatch stockbatchmodel.StockBatch
-	err := s.db.WithContext(ctx).
-		Where("stockbatch_id = ?", stockBatchID).
-		First(&stockBatch).Error
 
-	if err != nil {
+	if err := s.db.WithContext(ctx).
+		Where(cond).
+		Preload("Ingredient").
+		First(&stockBatch).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, common.ErrNotFoundEntity(stockbatchmodel.EntityName, err)
 		}

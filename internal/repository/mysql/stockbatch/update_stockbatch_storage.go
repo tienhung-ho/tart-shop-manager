@@ -2,14 +2,20 @@ package stockbatchstorage
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/go-sql-driver/mysql"
+	"gorm.io/gorm/clause"
 	"strings"
 	"tart-shop-manager/internal/common"
+	commonrecover "tart-shop-manager/internal/common/recover"
 	stockbatchmodel "tart-shop-manager/internal/entity/dtos/sql/stockbatch"
+	responseutil "tart-shop-manager/internal/util/response"
 )
 
 // UpdateStockBatches updates multiple StockBatch records in a single query
-func (s *mysqlStockBatch) UpdateStockBatches(ctx context.Context, cond map[string]interface{}, data []stockbatchmodel.UpdateStockBatch) ([]uint64, error) {
+func (s *mysqlStockBatch) UpdateStockBatches(ctx context.Context, cond map[string]interface{},
+	data []stockbatchmodel.UpdateStockBatch) ([]uint64, error) {
 	if len(data) == 0 {
 		return nil, nil
 	}
@@ -80,4 +86,47 @@ func (s *mysqlStockBatch) UpdateStockBatches(ctx context.Context, cond map[strin
 	}
 
 	return stockBatchIDs, nil
+}
+
+func (s *mysqlStockBatch) UpdateStockBatch(ctx context.Context, cond map[string]interface{},
+	data *stockbatchmodel.UpdateStockBatch) (*stockbatchmodel.StockBatch, error) {
+
+	db := s.db.Begin()
+
+	if db.Error != nil {
+		return nil, common.ErrDB(db.Error)
+	}
+
+	defer commonrecover.RecoverTransaction(db)
+
+	if err := db.WithContext(ctx).Model(&stockbatchmodel.UpdateStockBatch{}).Where(cond).
+		Clauses(clause.Locking{Strength: "UPDATE"}).
+		//Clauses(clause.Returning{}).
+		Updates(data).Error; err != nil {
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+
+			fieldName := responseutil.ExtractFieldFromError(err, stockbatchmodel.EntityName) // Extract field causing the duplicate error
+			return nil, common.ErrDuplicateEntry(stockbatchmodel.EntityName, fieldName, err)
+		}
+		db.Rollback()
+		return nil, err
+	}
+
+	var record stockbatchmodel.StockBatch
+
+	if err := db.WithContext(ctx).Model(data).
+		Where(cond).
+		Preload("Ingredient").
+		First(&record).Error; err != nil {
+		db.Rollback()
+		return nil, common.ErrDB(err)
+	}
+
+	if err := db.Commit().Error; err != nil {
+		db.Rollback()
+		return nil, common.ErrDB(err)
+	}
+
+	return &record, nil
 }

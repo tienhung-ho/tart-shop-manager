@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"tart-shop-manager/internal/common"
-	supplyordercachemodel "tart-shop-manager/internal/entity/dtos/redis"
+	supplyordercachemodel "tart-shop-manager/internal/entity/dtos/redis/supplyOrder"
 	supplyordermodel "tart-shop-manager/internal/entity/dtos/sql/supplyOrder"
 	"time"
 )

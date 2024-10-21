@@ -9,4 +9,8 @@ import (
 
 func StockBatchRouter(stockBatch *gin.RouterGroup, db *gorm.DB, rdb *redis.Client) {
 	stockBatch.POST("/", stockbatchhandler.CreateStockBatchHandler(db))
+	stockBatch.GET("/:id", stockbatchhandler.GetStockBatchHandler(db, rdb))
+	stockBatch.PATCH("/:id", stockbatchhandler.UpdateStockBatchHandler(db, rdb))
+	stockBatch.DELETE("/:id", stockbatchhandler.DeleteStockBatchHandler(db, rdb))
+	stockBatch.GET("/list", stockbatchhandler.ListItemStockBatchHandler(db, rdb))
 }

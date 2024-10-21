@@ -229,7 +229,7 @@ func (biz *updateSupplyOrderBusiness) UpdateSupplyOrder(ctx context.Context, con
 func (biz *updateSupplyOrderBusiness) handleStockBatch(ctx context.Context, ing supplyordermodel.CreateIngredient, existingStockBatchID uint64) (uint64, *stockbatchmodel.UpdateStockBatch, *stockbatchmodel.CreateStockBatch, error) {
 	if existingStockBatchID != 0 {
 		// Nếu StockBatch đã tồn tại, cập nhật Quantity, ExpirationDate, ReceivedDate
-		stockBatch, err := biz.storeStockBatch.GetStockBatch(ctx, existingStockBatchID)
+		stockBatch, err := biz.storeStockBatch.GetStockBatch(ctx, map[string]interface{}{"stockbatch_id": existingStockBatchID})
 		if err != nil {
 			return 0, nil, nil, common.ErrCannotGetEntity("StockBatch", err)
 		}

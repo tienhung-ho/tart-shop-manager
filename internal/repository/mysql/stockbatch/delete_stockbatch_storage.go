@@ -17,3 +17,14 @@ func (s *mysqlStockBatch) DeleteStockBatches(ctx context.Context, stockBatchIDs 
 	}
 	return nil
 }
+
+func (s *mysqlStockBatch) DeleteStockBatch(ctx context.Context, cond map[string]interface{}) error {
+
+	if err := s.db.WithContext(ctx).
+		Where(cond).
+		Delete(&stockbatchmodel.StockBatch{}).Error; err != nil {
+		return common.ErrCannotDeleteEntity(stockbatchmodel.EntityName, err)
+	}
+
+	return nil
+}

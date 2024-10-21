@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 )
@@ -137,6 +138,7 @@ func (cd *CustomDate) UnmarshalJSON(b []byte) error {
 	strInput := strings.Trim(string(b), "\"")
 	parsedTime, err := time.Parse(DateFormat, strInput)
 	if err != nil {
+		log.Print(err, "Unmashal")
 		return errors.New("invalid date format, use YYYY-MM-DD")
 	}
 	cd.Time = parsedTime
@@ -165,6 +167,17 @@ func (cd *CustomDate) Scan(value interface{}) error {
 		return err
 	}
 
+	cd.Time = parsedTime
+	return nil
+}
+
+// **Thêm phương thức UnmarshalText**
+func (cd *CustomDate) UnmarshalText(text []byte) error {
+	strInput := strings.Trim(string(text), "\"")
+	parsedTime, err := time.Parse(DateFormat, strInput)
+	if err != nil {
+		return fmt.Errorf("invalid date format, use YYYY-MM-DD: %w", err)
+	}
 	cd.Time = parsedTime
 	return nil
 }
