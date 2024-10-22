@@ -33,8 +33,8 @@ func NewMySQLSupplyOrder(db *gorm.DB) *mysqlSupplyOrder {
 	return &mysqlSupplyOrder{db}
 }
 
-func (s *mysqlSupplyOrder) Transaction(ctx context.Context, fn func(txCtx context.Context) error) error {
-	tx := s.db.Begin()
+func (r *mysqlSupplyOrder) Transaction(ctx context.Context, fn func(txCtx context.Context) error) error {
+	tx := r.db.Begin()
 	if tx.Error != nil {
 		return common.ErrDB(tx.Error)
 	}
@@ -55,10 +55,10 @@ func (s *mysqlSupplyOrder) Transaction(ctx context.Context, fn func(txCtx contex
 }
 
 // getDB lấy *gorm.DB từ context nếu có transaction
-func (s *mysqlSupplyOrder) getDB(ctx context.Context) *gorm.DB {
+func (r *mysqlSupplyOrder) getDB(ctx context.Context) *gorm.DB {
 	tx, ok := ctx.Value(trainsaction.TransactionKey).(*gorm.DB)
 	if ok {
 		return tx
 	}
-	return s.db
+	return r.db
 }

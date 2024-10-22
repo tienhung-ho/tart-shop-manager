@@ -7,9 +7,9 @@ import (
 	supplyordermodel "tart-shop-manager/internal/entity/dtos/sql/supplyOrder"
 )
 
-func (s *mysqlSupplyOrder) GetSupplyOrder(ctx context.Context, cond map[string]interface{}) (*supplyordermodel.SupplyOrder, error) {
+func (r *mysqlSupplyOrder) GetSupplyOrder(ctx context.Context, cond map[string]interface{}) (*supplyordermodel.SupplyOrder, error) {
 
-	db := s.db
+	db := r.db
 
 	var record supplyordermodel.SupplyOrder
 	if err := db.WithContext(ctx).Select(SelectFields).Where(cond).

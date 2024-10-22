@@ -8,9 +8,9 @@ import (
 	supplyordermodel "tart-shop-manager/internal/entity/dtos/sql/supplyOrder"
 )
 
-func (s *mysqlSupplyOrder) DeleteSupplyOrder(ctx context.Context, cond map[string]interface{}, morekeys ...string) error {
+func (r *mysqlSupplyOrder) DeleteSupplyOrder(ctx context.Context, cond map[string]interface{}, morekeys ...string) error {
 
-	db := s.getDB(ctx)
+	db := r.getDB(ctx)
 
 	if err := db.WithContext(ctx).
 		Where(cond).

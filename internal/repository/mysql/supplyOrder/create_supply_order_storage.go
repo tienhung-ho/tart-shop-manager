@@ -10,8 +10,8 @@ import (
 	responseutil "tart-shop-manager/internal/util/response"
 )
 
-func (s *mysqlSupplyOrder) CreateSupplyOrder(ctx context.Context, data *supplyordermodel.CreateSupplyOrder) (uint64, error) {
-	db := s.getDB(ctx)
+func (r *mysqlSupplyOrder) CreateSupplyOrder(ctx context.Context, data *supplyordermodel.CreateSupplyOrder) (uint64, error) {
+	db := r.getDB(ctx)
 
 	email, ok := ctx.Value("email").(string)
 

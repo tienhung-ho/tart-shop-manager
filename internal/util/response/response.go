@@ -2,6 +2,7 @@ package responseutil
 
 import (
 	"github.com/go-sql-driver/mysql"
+	"reflect"
 	"strings"
 )
 
@@ -41,4 +42,46 @@ func ExtractFieldFromError(err error, entityName string) string {
 	}
 
 	return parts[1] // e.g., "phone"
+}
+
+func StructToMap(obj interface{}) map[string]interface{} {
+	result := make(map[string]interface{})
+	val := reflect.ValueOf(obj)
+
+	// Nếu là con trỏ, ta phải lấy giá trị thực sự của nó
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
+	typ := val.Type()
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		fieldType := typ.Field(i)
+
+		// Bỏ qua trường hợp không thể xuất ra được (unexported field)
+		if !field.CanInterface() {
+			continue
+		}
+
+		// Kiểm tra giá trị mặc định và bỏ qua
+		isDefault := false
+		switch field.Kind() {
+		case reflect.String:
+			isDefault = field.String() == ""
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			isDefault = field.Int() == 0
+		case reflect.Float32, reflect.Float64:
+			isDefault = field.Float() == 0
+		case reflect.Slice, reflect.Map:
+			isDefault = field.Len() == 0
+		case reflect.Ptr:
+			isDefault = field.IsNil()
+		}
+
+		if !isDefault {
+			result[fieldType.Tag.Get("json")] = field.Interface()
+		}
+	}
+
+	return result
 }

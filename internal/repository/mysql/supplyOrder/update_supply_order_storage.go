@@ -8,9 +8,9 @@ import (
 )
 
 // UpdateSupplyOrder updates the SupplyOrder record based on conditions and data provided
-func (s *mysqlSupplyOrder) UpdateSupplyOrder(ctx context.Context, cond map[string]interface{}, data *supplyordermodel.UpdateSupplyOrder) (*supplyordermodel.SupplyOrder, error) {
+func (r *mysqlSupplyOrder) UpdateSupplyOrder(ctx context.Context, cond map[string]interface{}, data *supplyordermodel.UpdateSupplyOrder) (*supplyordermodel.SupplyOrder, error) {
 	var supplyOrder supplyordermodel.SupplyOrder
-	if err := s.db.WithContext(ctx).Where(cond).First(&supplyOrder).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where(cond).First(&supplyOrder).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, common.ErrNotFoundEntity(supplyordermodel.EntityName, nil)
 		}
@@ -36,12 +36,12 @@ func (s *mysqlSupplyOrder) UpdateSupplyOrder(ctx context.Context, cond map[strin
 		// Thêm các trường khác nếu có
 	}
 
-	if err := s.db.WithContext(ctx).Model(&supplyOrder).Updates(&updateData).Error; err != nil {
+	if err := r.db.WithContext(ctx).Model(&supplyOrder).Updates(&updateData).Error; err != nil {
 		return nil, common.ErrCannotUpdateEntity(supplyordermodel.EntityName, err)
 	}
 
 	// Lấy lại SupplyOrder đã cập nhật
-	if err := s.db.WithContext(ctx).
+	if err := r.db.WithContext(ctx).
 		Preload("SupplyOrderItems").
 		Preload("SupplyOrderItems.StockBatch").
 		First(&supplyOrder, "supplyorder_id = ?", supplyOrder.SupplyOrderID).Error; err != nil {
