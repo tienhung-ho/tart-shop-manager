@@ -31,6 +31,7 @@ type Product struct {
 	Name            string                  `gorm:"column:name;size:200;not null" json:"name"`
 	Description     string                  `gorm:"column:description;type:text" json:"description"`
 	QuantityInStock int                     `gorm:"column:quantity_in_stock;not null" json:"quantity_in_stock"`
+	Price           float64                 `gorm:"column:price;type:decimal(11,2)" json:"price"`
 	Images          []imagemodel.Image      `gorm:"foreignKey:ProductID;references:ProductID" json:"images"`
 	CategoryID      uint64                  `gorm:"column:category_id;not null" json:"category_id"`
 	Category        *categorymodel.Category `gorm:"foreignKey:CategoryID;references:CategoryID" json:"category"`

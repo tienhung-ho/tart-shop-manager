@@ -50,6 +50,11 @@ func (r *mysqlProduct) countRecord(db *gorm.DB, cond map[string]interface{}, pag
 func (r *mysqlProduct) buildQuery(db *gorm.DB, cond map[string]interface{}, filter *commonfilter.Filter) *gorm.DB {
 	db = db.Where(cond)
 	if filter != nil {
+
+		if len(filter.IDs) > 0 {
+			db = db.Where("product_id IN (?)", filter.IDs)
+		}
+
 		if filter.Status != "" {
 			db = db.Where("status IN ?", filter.Status)
 		}

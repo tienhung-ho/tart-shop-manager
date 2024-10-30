@@ -9,4 +9,5 @@ import (
 
 func OrderRouter(order *gin.RouterGroup, db *gorm.DB, rdb *redis.Client) {
 	order.GET("/:id", orderhandler.GetOrderHandler(db, rdb))
+	order.POST("/", orderhandler.CreateOrderHandler(db, rdb))
 }

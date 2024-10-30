@@ -13,7 +13,7 @@ var (
 
 type StockBatch struct {
 	StockBatchID   uint64                      `gorm:"column:stockbatch_id;primaryKey;autoIncrement" json:"stockbatch_id"`
-	Quantity       int                         `gorm:"column:quantity;not null" json:"quantity"`
+	Quantity       float64                     `gorm:"column:quantity;not null" json:"quantity"`
 	ExpirationDate time.Time                   `gorm:"column:expiration_date;not null" json:"expiration_date"`
 	ReceivedDate   time.Time                   `gorm:"column:received_date;not null" json:"received_date"`
 	IngredientID   uint64                      `gorm:"column:ingredient_id;not null" json:"ingredient_id"`

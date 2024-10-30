@@ -8,7 +8,7 @@ import (
 type CreateIngredient struct {
 	IngredientID   uint64            `json:"ingredient_id"`
 	Unit           string            `json:"unit"`
-	Quantity       int               `json:"quantity"`
+	Quantity       float64           `json:"quantity"`
 	Price          float64           `json:"price"`
 	ExpirationDate common.CustomDate `json:"expiration_date"`
 	ReceivedDate   common.CustomDate `json:"received_date"`

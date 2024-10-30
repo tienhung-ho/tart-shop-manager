@@ -31,6 +31,8 @@ func (s *mysqlRecipe) ListItem(ctx context.Context, cond map[string]interface{},
 	var records []recipemodel.Recipe
 	if err := query.
 		Preload("Product").
+		Preload("RecipeIngredients").
+		Preload("RecipeIngredients.Ingredient").
 		Find(&records).Error; err != nil {
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -47,7 +49,8 @@ func (s *mysqlRecipe) countRecord(db *gorm.DB, cond map[string]interface{}, pagi
 	// Apply conditions and filters
 	db = s.buildQuery(db, cond, filter)
 
-	if err := db.Model(&recipemodel.Recipe{}).Count(&paging.Total).Error; err != nil {
+	if err := db.Model(&recipemodel.Recipe{}).
+		Count(&paging.Total).Error; err != nil {
 		return common.NewErrorResponse(err, "Error counting items from database", err.Error(), "CouldNotCount")
 	}
 	return nil
@@ -75,6 +78,19 @@ func (s *mysqlRecipe) buildQuery(db *gorm.DB, cond map[string]interface{}, filte
 
 		if filter.MaxPrice > 0 {
 			db = db.Where("price <= ?", filter.MaxPrice)
+		}
+
+		if len(filter.IDs) > 0 {
+			db = db.Where("recipe_id IN (?)", filter.IDs)
+		}
+
+		if len(filter.ProductIDs) > 0 {
+			db = db.Where("product_id IN (?)", filter.ProductIDs)
+		}
+
+		// Thêm điều kiện lọc theo danh sách size
+		if len(filter.Sizes) > 0 {
+			db = db.Where("size IN (?)", filter.Sizes)
 		}
 	}
 	return db

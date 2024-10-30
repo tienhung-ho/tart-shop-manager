@@ -169,6 +169,12 @@ func ErrNotFoundEntity(entity string, err error) *AppError {
 		fmt.Sprintf("ErrCannotNotFound%s", entity), entity)
 }
 
+func ErrOutOffQuantity(entity string, err error) *AppError {
+	return NewErrorResponse(err,
+		fmt.Sprintf("Out off quantity %s", strings.ToLower(entity)),
+		fmt.Sprintf("ErrOutOffQuantity%s", entity), entity)
+}
+
 func ErrNotFoundToken(entity string, err error) *AppError {
 	return NewErrorResponse(err,
 		fmt.Sprintf("Cannot not found %s", strings.ToLower(entity)),

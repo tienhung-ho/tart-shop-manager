@@ -15,6 +15,7 @@ type Filter struct {
 	EndDate    *common.CustomDate `json:"end_date,omitempty" form:"end_date"`
 	Ingredient *uint64            `json:"ingredient,omitempty" form:"ingredient"`
 	OrderDate
+	Recipe
 }
 
 type OrderDate struct {
@@ -24,4 +25,9 @@ type OrderDate struct {
 	EndExpirationDate   *common.CustomDate `json:"end_expiration_date,omitempty"`
 	StartReceivedDate   *common.CustomDate `json:"start_received_date,omitempty"`
 	EndReceivedDate     *common.CustomDate `json:"end_received_date,omitempty"`
+}
+
+type Recipe struct {
+	ProductIDs []uint64 `json:"product_ids,omitempty"`
+	Sizes      []string `json:"sizes,omitempty"`
 }

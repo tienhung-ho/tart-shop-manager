@@ -241,9 +241,9 @@ func (biz *updateSupplyOrderBusiness) handleStockBatch(ctx context.Context, ing 
 		updatedQuantity := ing.Quantity
 		update := stockbatchmodel.UpdateStockBatch{
 			StockBatchID:   existingStockBatchID,
-			Quantity:       updatedQuantity,
-			ExpirationDate: ing.ExpirationDate,
-			ReceivedDate:   ing.ReceivedDate,
+			Quantity:       &updatedQuantity,
+			ExpirationDate: &ing.ExpirationDate,
+			ReceivedDate:   &ing.ReceivedDate,
 		}
 
 		return existingStockBatchID, &update, nil, nil

@@ -12,6 +12,7 @@ type CreateProduct struct {
 	Name            string                  `json:"name"`
 	Description     string                  `json:"description"`
 	QuantityInStock int                     `json:"quantity_in_stock"`
+	Price           float64                 `gorm:"column:price;type:decimal(11,2)" json:"price"`
 	Images          []imagemodel.Image      `gorm:"foreignKey:ProductID;references:ProductID" json:"images"`
 	CategoryID      uint64                  `json:"category_id"`
 	Category        *categorymodel.Category `json:"category"` // Liên kết với Category
