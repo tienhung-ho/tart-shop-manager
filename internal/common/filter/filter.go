@@ -16,6 +16,7 @@ type Filter struct {
 	Ingredient *uint64            `json:"ingredient,omitempty" form:"ingredient"`
 	OrderDate
 	Recipe
+	Product
 }
 
 type OrderDate struct {
@@ -30,4 +31,9 @@ type OrderDate struct {
 type Recipe struct {
 	ProductIDs []uint64 `json:"product_ids,omitempty"`
 	Sizes      []string `json:"sizes,omitempty"`
+}
+
+type Product struct {
+	//ProductIDs []uint64 `json:"product_ids,omitempty"`
+	Name string `json:"product_name,omitempty"`
 }

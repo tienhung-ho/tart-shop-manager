@@ -10,7 +10,11 @@ func (s *mysqlOrder) GetOrder(ctx context.Context, cond map[string]interface{}, 
 	db := s.db
 
 	var order ordermodel.Order
-	if err := db.WithContext(ctx).Where(cond).Preload("Products").First(&order).Error; err != nil {
+	if err := db.WithContext(ctx).Where(cond).
+		Preload("OrderItems").
+		Preload("OrderItems.Recipe").
+		Preload("OrderItems.Recipe.Product").
+		First(&order).Error; err != nil {
 		return nil, err
 	}
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"sort"
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
@@ -23,8 +22,13 @@ type CreateOrderItemStorage interface {
 	CreateOrderItems(ctx context.Context, data []ordermodel.CreateOrderItem) error
 }
 
+type CreateOrderCache interface {
+	DeleteListCache(ctx context.Context, entityName string) error
+}
+
 type createOrderBusiness struct {
 	store           CreateOrderStorage
+	cache           CreateOrderCache
 	orderItemStore  CreateOrderItemStorage
 	recipeStorage   RecipeStorage
 	stockBatchStore StockBatchStorage
@@ -35,9 +39,11 @@ func NewCreateOrderBiz(
 	orderItemStore CreateOrderItemStorage,
 	recipeStorage RecipeStorage,
 	stockBatchStore StockBatchStorage,
+	cache CreateOrderCache,
 ) *createOrderBusiness {
 	return &createOrderBusiness{
 		store,
+		cache,
 		orderItemStore,
 		recipeStorage,
 		stockBatchStore,
@@ -200,11 +206,13 @@ func (biz *createOrderBusiness) CreateOrder(ctx context.Context, data *ordermode
 			orderItems = append(orderItems, orderItem)
 		}
 
-		log.Print(orderItems)
-
 		err = biz.orderItemStore.CreateOrderItems(txCtx, orderItems)
 		if err != nil {
 			return common.ErrCannotCreateEntity(ordermodel.EntityName, err)
+		}
+
+		if err = biz.cache.DeleteListCache(txCtx, ordermodel.EntityName); err != nil {
+			return common.ErrCannotDeleteEntity(ordermodel.EntityName, err)
 		}
 
 		return nil
