@@ -1,0 +1,2 @@
+ALTER TABLE `OrderRecipe`
+    ADD COLUMN `deleted_at` TIMESTAMP NULL DEFAULT NULL;
