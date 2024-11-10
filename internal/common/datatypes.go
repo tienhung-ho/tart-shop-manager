@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 )
@@ -122,24 +121,45 @@ func (j JSON) Value() (driver.Value, error) {
 	return json.RawMessage(j).MarshalJSON()
 }
 
+// CustomDate bao gồm cả ngày, giờ và múi giờ
 type CustomDate struct {
 	time.Time
 }
 
+// Định dạng thời gian chuẩn RFC3339
+const DateTimeFormatRFC3339 = time.RFC3339 // "2006-01-02T15:04:05Z07:00"
+
+// Định dạng ngày duy nhất
 const DateFormat = "2006-01-02"
 
-// Marshal JSON to ensure correct format when returning to client
+// Định dạng datetime cho MySQL
+const DateTimeFormatMySQL = "2006-01-02 15:04:05"
+
+// MarshalJSON để đảm bảo định dạng chính xác khi trả về cho client
 func (cd *CustomDate) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("\"%s\"", cd.Time.Format(DateFormat))), nil
+	if cd.Time.IsZero() {
+		return []byte("null"), nil
+	}
+	// Sử dụng RFC3339 cho JSON
+	return []byte(fmt.Sprintf("\"%s\"", cd.Time.Format(DateTimeFormatRFC3339))), nil
 }
 
-// Unmarshal JSON to bind the incoming date string to time.Time
+// UnmarshalJSON để bind chuỗi ngày-giờ từ client vào time.Time
 func (cd *CustomDate) UnmarshalJSON(b []byte) error {
 	strInput := strings.Trim(string(b), "\"")
-	parsedTime, err := time.Parse(DateFormat, strInput)
+	if strInput == "null" || strInput == "" {
+		cd.Time = time.Time{}
+		return nil
+	}
+
+	// Thử parse với RFC3339
+	parsedTime, err := time.Parse(DateTimeFormatRFC3339, strInput)
 	if err != nil {
-		log.Print(err, "Unmashal")
-		return errors.New("invalid date format, use YYYY-MM-DD")
+		// Nếu không thành công, thử parse với định dạng ngày duy nhất
+		parsedTime, err = time.Parse(DateFormat, strInput)
+		if err != nil {
+			return errors.New("invalid datetime format, use RFC3339 or 'YYYY-MM-DD'")
+		}
 	}
 	cd.Time = parsedTime
 	return nil
@@ -147,7 +167,11 @@ func (cd *CustomDate) UnmarshalJSON(b []byte) error {
 
 // Implement the driver.Valuer interface for database serialization
 func (cd CustomDate) Value() (driver.Value, error) {
-	return cd.Time.Format(DateFormat), nil
+	if cd.Time.IsZero() {
+		return nil, nil
+	}
+	// Sử dụng định dạng MySQL khi lưu vào DB
+	return cd.Time.Format(DateTimeFormatMySQL), nil
 }
 
 // Implement the sql.Scanner interface for database deserialization
@@ -157,26 +181,46 @@ func (cd *CustomDate) Scan(value interface{}) error {
 		return nil
 	}
 
-	str, ok := value.(string)
-	if !ok {
-		return errors.New("failed to scan date field")
+	switch v := value.(type) {
+	case time.Time:
+		cd.Time = v
+		return nil
+	case string:
+		parsedTime, err := time.Parse(DateTimeFormatMySQL, v)
+		if err != nil {
+			// Nếu không thành công, thử parse với RFC3339
+			parsedTime, err = time.Parse(DateTimeFormatRFC3339, v)
+			if err != nil {
+				// Thử parse với định dạng ngày duy nhất
+				parsedTime, err = time.Parse(DateFormat, v)
+				if err != nil {
+					return errors.New("invalid datetime format")
+				}
+			}
+		}
+		cd.Time = parsedTime
+		return nil
+	default:
+		return errors.New("unsupported type for CustomDate")
 	}
-
-	parsedTime, err := time.Parse(DateFormat, str)
-	if err != nil {
-		return err
-	}
-
-	cd.Time = parsedTime
-	return nil
 }
 
-// **Thêm phương thức UnmarshalText**
+// Implement the encoding.TextUnmarshaler interface
 func (cd *CustomDate) UnmarshalText(text []byte) error {
 	strInput := strings.Trim(string(text), "\"")
-	parsedTime, err := time.Parse(DateFormat, strInput)
+	if strInput == "" {
+		cd.Time = time.Time{}
+		return nil
+	}
+
+	// Thử parse với RFC3339
+	parsedTime, err := time.Parse(DateTimeFormatRFC3339, strInput)
 	if err != nil {
-		return fmt.Errorf("invalid date format, use YYYY-MM-DD: %w", err)
+		// Nếu không thành công, thử parse với định dạng ngày duy nhất
+		parsedTime, err = time.Parse(DateFormat, strInput)
+		if err != nil {
+			return fmt.Errorf("invalid datetime format, use RFC3339 or 'YYYY-MM-DD': %w", err)
+		}
 	}
 	cd.Time = parsedTime
 	return nil

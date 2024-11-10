@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"tart-shop-manager/internal/common"
 	productmodel "tart-shop-manager/internal/entity/dtos/sql/product"
+	imagestorage "tart-shop-manager/internal/repository/mysql/image"
 	productstorage "tart-shop-manager/internal/repository/mysql/product"
 	productbusiness "tart-shop-manager/internal/service/product"
 )
@@ -40,7 +41,8 @@ func CreateProductHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 		}
 
 		store := productstorage.NewMySQLProduct(db)
-		biz := productbusiness.NewCreateProductBusiness(store)
+		cloud := imagestorage.NewMySQLImage(db)
+		biz := productbusiness.NewCreateProductBusiness(store, cloud)
 
 		recordId, err := biz.CreateProduct(c, &data)
 

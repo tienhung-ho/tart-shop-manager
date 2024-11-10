@@ -50,6 +50,7 @@ func NewUnauthorized(root error, msg, log, key string) *AppError {
 		Timestamp:  time.Now(), // Add the current time
 	}
 }
+
 func ErrDB(err error) *AppError {
 	return NewFullErrorResponse(http.StatusInternalServerError, err, "something went wrong with DB", err.Error(), "DB_ERROR")
 }
@@ -72,6 +73,12 @@ func ErrCannotListEntity(entity string, err error) *AppError {
 	return NewErrorResponse(err,
 		fmt.Sprintf("Cannot list %s", strings.ToLower(entity)),
 		fmt.Sprintf("ErrCannotList%s", entity), entity)
+}
+
+func ErrCannotGetReport(entity string, err error) *AppError {
+	return NewErrorResponse(err,
+		fmt.Sprintf("Cannot get report %s", strings.ToLower(entity)),
+		fmt.Sprintf("ErrCannotGetReport%s", entity), entity)
 }
 
 func ErrCannotGetEntity(entity string, err error) *AppError {
@@ -126,13 +133,13 @@ func ErrInvalidEnum(entity string, err error) *AppError {
 }
 
 func ErrEmailInvalid(entity string, err error) *AppError {
-	return NewErrorResponse(err,
+	return NewFullErrorResponse(http.StatusForbidden, err,
 		fmt.Sprintf("Cannot login, wrong email %s", strings.ToLower(entity)),
 		fmt.Sprintf("ErrCannotLogin%s", entity), entity)
 }
 
 func ErrPasswordInvalid(entity string, err error) *AppError {
-	return NewErrorResponse(err,
+	return NewFullErrorResponse(http.StatusForbidden, err,
 		fmt.Sprintf("Cannot login, wrong password %s", strings.ToLower(entity)),
 		fmt.Sprintf("ErrCannotLogin%s", entity), entity)
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
+	"log"
 	"net/http"
 	"tart-shop-manager/internal/common"
 	supplyordermodel "tart-shop-manager/internal/entity/dtos/sql/supplyOrder"
@@ -20,13 +21,14 @@ func CreateSupplyOrderHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Contex
 		var data supplyordermodel.CreateSupplyOrder
 
 		if err := c.ShouldBindJSON(&data); err != nil {
+			log.Print(err)
 			c.JSON(http.StatusBadRequest, common.ErrInternal(err))
 			c.Abort()
 			return
 		}
 
 		validate := validator.New()
-		
+
 		// Thực hiện validate
 		err := validate.Struct(data)
 		if err != nil {

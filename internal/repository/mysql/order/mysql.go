@@ -7,6 +7,16 @@ import (
 	"tart-shop-manager/internal/common/trainsaction"
 )
 
+var (
+	AllowedSortFields = map[string]bool{
+		"order_id":   true,
+		"created_at": true,
+		"updated_at": true,
+		"size":       true,
+		"cost":       true,
+	}
+)
+
 type mysqlOrder struct {
 	db *gorm.DB
 }

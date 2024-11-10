@@ -17,15 +17,20 @@ type Filter struct {
 	OrderDate
 	Recipe
 	Product
+	ReportOrderDate
 }
 
 type OrderDate struct {
-	ExpirationDate      *common.CustomDate `json:"expiration_date,omitempty"`
-	ReceivedDate        *common.CustomDate `json:"received_date,omitempty"`
-	StartExpirationDate *common.CustomDate `json:"start_expiration_date,omitempty"`
-	EndExpirationDate   *common.CustomDate `json:"end_expiration_date,omitempty"`
-	StartReceivedDate   *common.CustomDate `json:"start_received_date,omitempty"`
-	EndReceivedDate     *common.CustomDate `json:"end_received_date,omitempty"`
+	ExpirationDate      *common.CustomDate `json:"expiration_date,omitempty" form:"expiration_date"`
+	ReceivedDate        *common.CustomDate `json:"received_date,omitempty" form:"received_date"`
+	StartExpirationDate *common.CustomDate `json:"start_expiration_date,omitempty" form:"start_expiration_date"`
+	EndExpirationDate   *common.CustomDate `json:"end_expiration_date,omitempty" form:"end_expiration_date"`
+	StartReceivedDate   *common.CustomDate `json:"start_received_date,omitempty" form:"start_received_date"`
+	EndReceivedDate     *common.CustomDate `json:"end_received_date,omitempty" form:"end_received_date"`
+}
+
+type ReportOrderDate struct {
+	InDate *common.CustomDate `json:"in_date,omitempty" form:"in_date"`
 }
 
 type Recipe struct {

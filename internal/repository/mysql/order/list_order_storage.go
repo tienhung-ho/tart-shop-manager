@@ -21,6 +21,11 @@ func (r *mysqlOrder) ListItem(ctx context.Context, cond map[string]interface{},
 	// Apply filters
 	query = r.applyFilters(query, filter)
 
+	query, err := r.addPaging(query, paging)
+	if err != nil {
+		return nil, err
+	}
+
 	// Count total records
 	if err := r.countTotalRecords(query, paging); err != nil {
 		return nil, err
@@ -98,6 +103,25 @@ func (r *mysqlOrder) countTotalRecords(query *gorm.DB, paging *paggingcommon.Pag
 	}
 	paging.Total = total
 	return nil
+}
+
+func (s *mysqlOrder) addPaging(db *gorm.DB, paging *paggingcommon.Paging) (*gorm.DB, error) {
+	// Parse and validate the sort fields
+	sortFields, err := paging.ParseSortFields(paging.Sort, AllowedSortFields)
+	if err != nil {
+		return nil, common.NewErrorResponse(err, "Invalid sort parameters", err.Error(), "InvalidSort")
+	}
+
+	// Apply sorting to the query
+	if len(sortFields) > 0 {
+		for _, sortField := range sortFields {
+			db = db.Order(sortField)
+		}
+	} else {
+		// Default sorting if no sort parameters are provided
+		db = db.Order("order_id desc")
+	}
+	return db, nil
 }
 
 // executeMainQuery thực hiện query chính với preload

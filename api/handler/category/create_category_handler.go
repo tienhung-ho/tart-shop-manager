@@ -8,6 +8,7 @@ import (
 	"tart-shop-manager/internal/common"
 	categorymodel "tart-shop-manager/internal/entity/dtos/sql/category"
 	categorystorage "tart-shop-manager/internal/repository/mysql/category"
+	imagestorage "tart-shop-manager/internal/repository/mysql/image"
 	categorybusiness "tart-shop-manager/internal/service/category"
 )
 
@@ -36,7 +37,8 @@ func CreateCategoryHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		store := categorystorage.NewMySQLCategory(db)
-		biz := categorybusiness.NewCreateCategoryBusiness(store)
+		cloud := imagestorage.NewMySQLImage(db)
+		biz := categorybusiness.NewCreateCategoryBusiness(store, cloud)
 
 		recordId, err := biz.CreateCategory(c, &data)
 

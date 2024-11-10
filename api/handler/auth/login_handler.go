@@ -31,7 +31,7 @@ func LoginHandler(db *gorm.DB) func(c *gin.Context) {
 		simpleUser, token, err := biz.Login(c.Request.Context(), &login)
 
 		if err != nil {
-			c.JSON(http.StatusBadRequest, err)
+			c.JSON(http.StatusForbidden, err)
 			return
 		}
 

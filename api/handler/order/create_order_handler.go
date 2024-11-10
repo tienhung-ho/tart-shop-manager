@@ -11,6 +11,7 @@ import (
 	orderitemstorage "tart-shop-manager/internal/repository/mysql/orderItem"
 	recipestorage "tart-shop-manager/internal/repository/mysql/recipe"
 	stockbatchstorage "tart-shop-manager/internal/repository/mysql/stockbatch"
+	ordercache "tart-shop-manager/internal/repository/redis/order"
 	orderbusiness "tart-shop-manager/internal/service/order"
 )
 
@@ -26,11 +27,12 @@ func CreateOrderHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 		}
 
 		store := orderstorage.NewMySQLOrder(db)
+		cache := ordercache.NewRdbStorage(rdb)
 		orderItemStore := orderitemstorage.NewMySQLOrder(db)
 		recipeStore := recipestorage.NewMySQLRecipe(db)
 		stockbatchStore := stockbatchstorage.NewMySQLStockBatch(db)
 
-		biz := orderbusiness.NewCreateOrderBiz(store, orderItemStore, recipeStore, stockbatchStore)
+		biz := orderbusiness.NewCreateOrderBiz(store, cache, orderItemStore, recipeStore, stockbatchStore)
 
 		recordID, err := biz.CreateOrder(c, &data)
 		if err != nil {

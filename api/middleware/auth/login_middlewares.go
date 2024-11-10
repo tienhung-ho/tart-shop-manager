@@ -16,10 +16,17 @@ import (
 
 func AuthRequire(db *gorm.DB, rdb *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		accessToken, err := c.Cookie("access_token")
+		accessToken, errAccess := c.Cookie("access_token")
+		_, errRefresh := c.Cookie("refresh_token")
 
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, common.NewUnauthorized(err, "This action requires login to perform", "ErrRequireLogin", "ACCESS_TOKEN"))
+		if errAccess != nil && errRefresh == nil {
+			c.JSON(http.StatusForbidden, common.TokenExpired("Access Token", errAccess))
+			c.Abort()
+			return
+		}
+
+		if errAccess != nil {
+			c.JSON(http.StatusForbidden, common.NewUnauthorized(errAccess, "This action requires login to perform", "ErrRequireLogin", "ACCESS_TOKEN"))
 			c.Abort()
 			return
 		}
@@ -66,7 +73,7 @@ func AuthRequire(db *gorm.DB, rdb *redis.Client) gin.HandlerFunc {
 		}
 
 		roleStatus := record.Status
-		
+
 		// Kiểm tra trạng thái vai trò
 		switch *roleStatus {
 		case common.StatusActive:

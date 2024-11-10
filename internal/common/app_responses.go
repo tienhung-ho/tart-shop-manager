@@ -1,13 +1,16 @@
 package common
 
+import "net/http"
+
 type successRes struct {
-	Data   interface{} `json:"data"`
-	Paging interface{} `json:"paging"`
-	Filter interface{} `json:"filter"`
+	StatusCode int         `json:"status_code"`
+	Data       interface{} `json:"data"`
+	Paging     interface{} `json:"paging"`
+	Filter     interface{} `json:"filter"`
 }
 
 func NewSuccesResponse(data, paging, filter interface{}) *successRes {
-	return &successRes{Data: data, Paging: paging, Filter: filter}
+	return &successRes{StatusCode: http.StatusOK, Data: data, Paging: paging, Filter: filter}
 }
 
 func SimpleSuccesResponse(data interface{}) *successRes {
@@ -15,6 +18,7 @@ func SimpleSuccesResponse(data interface{}) *successRes {
 }
 
 type userResponesToken struct {
+	StatusCode   int         `json:"status_code"`
 	AccessToken  interface{} `json:"accesstoken"`
 	RefreshToken interface{} `json:"refreshtoken"`
 	Data         interface{} `json:"data"`
@@ -22,6 +26,7 @@ type userResponesToken struct {
 
 func NewReponseUserToken(accessToken, refreshToken string, data interface{}) *userResponesToken {
 	return &userResponesToken{
+		StatusCode:   http.StatusOK,
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		Data:         data,
@@ -41,10 +46,11 @@ func NewReponseErrToken(errToken, tokenType string) *errTokenRespone {
 }
 
 type dataRes struct {
-	Data    interface{} `json:"data"`
-	Message string      `json:"message"`
+	StatusCode int         `json:"status_code"`
+	Data       interface{} `json:"data"`
+	Message    string      `json:"message"`
 }
 
 func NewDataResponse(data interface{}, message string) *dataRes {
-	return &dataRes{Data: data, Message: message}
+	return &dataRes{StatusCode: http.StatusOK, Data: data, Message: message}
 }

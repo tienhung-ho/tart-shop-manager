@@ -9,6 +9,7 @@ import (
 	stockbatchmodel "tart-shop-manager/internal/entity/dtos/sql/stockbatch"
 	supplyordermodel "tart-shop-manager/internal/entity/dtos/sql/supplyOrder"
 	databaseutil "tart-shop-manager/internal/util/database"
+	"time"
 )
 
 type CreateSupplyOrderStorage interface {
@@ -69,6 +70,7 @@ func (biz *createSupplyOrderBusiness) CreateSupplyOrder(ctx context.Context, dat
 	err = biz.store.Transaction(ctx, func(txCtx context.Context) error {
 
 		data.TotalAmount = totalAmount
+		data.OrderDate = common.CustomDate{Time: time.Now()}
 		recordID, err = biz.store.CreateSupplyOrder(ctx, data)
 
 		if err != nil {

@@ -10,6 +10,7 @@ import (
 	paggingcommon "tart-shop-manager/internal/common/paging"
 	ordermodel "tart-shop-manager/internal/entity/dtos/sql/order"
 	stockbatchmodel "tart-shop-manager/internal/entity/dtos/sql/stockbatch"
+	"time"
 )
 
 type CreateOrderStorage interface {
@@ -36,10 +37,11 @@ type createOrderBusiness struct {
 
 func NewCreateOrderBiz(
 	store CreateOrderStorage,
+	cache CreateOrderCache,
 	orderItemStore CreateOrderItemStorage,
 	recipeStorage RecipeStorage,
 	stockBatchStore StockBatchStorage,
-	cache CreateOrderCache,
+
 ) *createOrderBusiness {
 	return &createOrderBusiness{
 		store,
@@ -101,6 +103,7 @@ func (biz *createOrderBusiness) CreateOrder(ctx context.Context, data *ordermode
 		orderData.OrderItems = nil // Tách OrderItems ra
 
 		// Tạo đơn hàng
+		orderData.OrderDate = common.CustomDate{Time: time.Now()}
 		orderID, err = biz.store.CreateOrder(txCtx, &orderData)
 		if err != nil {
 			return common.ErrCannotCreateEntity(ordermodel.EntityName, err)

@@ -14,7 +14,7 @@ type CreateSupplyOrderCache struct {
 	SupplierID    uint64    `json:"supplier_id"`
 	common.CommonFields
 	//Supplier      Supplier       `gorm:"foreignKey:SupplierID" json:"supplier"`
-	SupplyOrderItems []supplyordermodel.SupplyOrderItem  `json:"supplyorder_item"`
+	SupplyOrderItems []supplyordermodel.SupplyOrderItem  `json:"supplierorder_item"`
 	Ingredients      []supplyordermodel.CreateIngredient `json:"ingredients" binding:"required,dive,required" validate:"required"`
 }
 

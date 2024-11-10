@@ -1,6 +1,7 @@
 package routerv1
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -13,6 +14,7 @@ import (
 	orderv1 "tart-shop-manager/api/router/v1/order"
 	productv1 "tart-shop-manager/api/router/v1/product"
 	recipev1 "tart-shop-manager/api/router/v1/recipe"
+	reportv1 "tart-shop-manager/api/router/v1/report"
 	rolev1 "tart-shop-manager/api/router/v1/role"
 	stockbatchv1 "tart-shop-manager/api/router/v1/stockbatch"
 	supplierv1 "tart-shop-manager/api/router/v1/supplier"
@@ -20,11 +22,22 @@ import (
 )
 
 func NewRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
+
 	r := gin.Default()
 
-	r.POST("/login", authhandler.LoginHandler(db))
+	// Cấu hình CORS
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:9000"}, // Cho phép origin từ frontend
+		AllowMethods:     []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
 
-	v1 := r.Group("/v1")
+	r.POST("/login", authhandler.LoginHandler(db))
+	r.POST("/refresh-token", authhandler.RefreshToken())
+
+	v1 := r.Group("/api/v1")
 	v1.Use(authmiddleware.AuthRequire(db, rdb), authmiddleware.CasbinMiddleware())
 	{
 		account := v1.Group("/account")
@@ -73,6 +86,10 @@ func NewRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
 		supplier := v1.Group("/supplier")
 		{
 			supplierv1.SupplierRouter(supplier, db, rdb)
+		}
+		report := v1.Group("/report")
+		{
+			reportv1.ReportRouter(report, db, rdb)
 		}
 	}
 	return r
