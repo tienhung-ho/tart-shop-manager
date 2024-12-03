@@ -10,7 +10,7 @@ import (
 type CommonFields struct {
 	CreatedAt time.Time      `gorm:"column:created_at;autoCreateTime" json:"-"`
 	UpdatedAt time.Time      `gorm:"column:updated_at;autoUpdateTime" json:"-"`
-	Status    *Status        `gorm:"column:status;type:enum('Pending', 'Active', 'Inactive');default:Pending" json:"status"`
+	Status    *Status        `gorm:"column:status;type:enum('Pending', 'Active', 'Inactive');default:Pending" json:"status,omitempty"`
 	CreatedBy string         `gorm:"column:created_by;type:char(30);default:'system'" json:"-"`
 	UpdatedBy string         `gorm:"column:updated_by;type:char(30)" json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
@@ -35,17 +35,22 @@ func (cf *CommonFields) BeforeUpdate(tx *gorm.DB) (err error) {
 		// Get the destination object and handle it with reflect.Indirect to avoid pointer issues
 		dest := reflect.Indirect(reflect.ValueOf(tx.Statement.Dest))
 
-		// Check if the struct has an UpdatedBy field
-		if dest.Kind() == reflect.Struct {
-			if updatedByField := dest.FieldByName("UpdatedBy"); updatedByField.IsValid() && updatedByField.CanSet() {
-				// Set the value
-				updatedByField.SetString(email)
-
-				// Use GORM's Update method to ensure the change is persisted
-				tx.Statement.SetColumn("updated_by", email)
+		// Check if the destination object is a pointer and is valid
+		if dest.Kind() == reflect.Ptr && dest.IsValid() {
+			// Ensure it's a struct and it has the UpdatedBy field
+			if dest.Elem().Kind() == reflect.Struct {
+				if updatedByField := dest.Elem().FieldByName("UpdatedBy"); updatedByField.IsValid() && updatedByField.CanSet() {
+					// Set the value of UpdatedBy
+					updatedByField.SetString(email)
+					// Ensure the update is persisted
+					tx.Statement.SetColumn("updated_by", email)
+				}
+			} else {
+				log.Print("Destination is not a struct")
 			}
 		} else {
-			log.Print("The destination object is not a struct")
+			log.Print("Destination is not a pointer or is invalid")
+			//return errors.New("invalid destination object")
 		}
 	} else {
 		log.Print("Email is missing from context")

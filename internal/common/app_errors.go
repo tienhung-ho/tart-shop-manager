@@ -125,6 +125,13 @@ func ErrInvalidGender(entity string, err error) *AppError {
 		entity)
 }
 
+func ErrInvalidAccount(entity string, err error) *AppError {
+	return NewErrorResponse(err,
+		fmt.Sprintf("Your account status has been disabled: %s", strings.ToLower(entity)),
+		fmt.Sprintf("ErrInvalid%s", entity),
+		entity)
+}
+
 func ErrInvalidEnum(entity string, err error) *AppError {
 	return NewErrorResponse(err,
 		fmt.Sprintf("Invalid enum for %s", strings.ToLower(entity)),

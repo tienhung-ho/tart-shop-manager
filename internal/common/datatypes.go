@@ -12,6 +12,7 @@ import (
 type Status string
 
 const (
+	StatusAll      Status = "All"
 	StatusActive   Status = "Active"
 	StatusInactive Status = "Inactive"
 	StatusPending  Status = "Pending"
