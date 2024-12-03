@@ -2,7 +2,6 @@ package producthandler
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"net/http"
@@ -33,21 +32,21 @@ func UpdateProductHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 			return
 		}
 
-		validate := validator.New()
-
-		// Thực hiện validate
-
-		if err := validate.Struct(data); err != nil {
-			if validationErrors, ok := err.(validator.ValidationErrors); ok {
-				//appErr := common.ErrValidation(validationErrors)
-				c.JSON(http.StatusBadRequest, common.ErrValidation(validationErrors))
-				return
-			}
-
-			// Xử lý lỗi khác nếu có
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
-			return
-		}
+		//validate := validator.New()
+		//
+		//// Thực hiện validate
+		//
+		//if err := validate.Struct(data); err != nil {
+		//	if validationErrors, ok := err.(validator.ValidationErrors); ok {
+		//		//appErr := common.ErrValidation(validationErrors)
+		//		c.JSON(http.StatusBadRequest, common.ErrValidation(validationErrors))
+		//		return
+		//	}
+		//
+		//	// Xử lý lỗi khác nếu có
+		//	c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		//	return
+		//}
 
 		store := productstorage.NewMySQLProduct(db)
 		cache := productcache.NewRdbStorage(rdb)

@@ -3,16 +3,18 @@ package categoryhandler
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"net/http"
 	"tart-shop-manager/internal/common"
 	categorymodel "tart-shop-manager/internal/entity/dtos/sql/category"
 	categorystorage "tart-shop-manager/internal/repository/mysql/category"
 	imagestorage "tart-shop-manager/internal/repository/mysql/image"
+	categorycache "tart-shop-manager/internal/repository/redis/category"
 	categorybusiness "tart-shop-manager/internal/service/category"
 )
 
-func CreateCategoryHandler(db *gorm.DB) func(c *gin.Context) {
+func CreateCategoryHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 	return func(c *gin.Context) {
 
 		var data categorymodel.CreateCategory
@@ -38,7 +40,8 @@ func CreateCategoryHandler(db *gorm.DB) func(c *gin.Context) {
 
 		store := categorystorage.NewMySQLCategory(db)
 		cloud := imagestorage.NewMySQLImage(db)
-		biz := categorybusiness.NewCreateCategoryBusiness(store, cloud)
+		cache := categorycache.NewRdbStorage(rdb)
+		biz := categorybusiness.NewCreateCategoryBusiness(store, cache, cloud)
 
 		recordId, err := biz.CreateCategory(c, &data)
 
