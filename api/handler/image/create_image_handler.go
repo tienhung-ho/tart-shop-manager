@@ -2,6 +2,7 @@ package imagehandler
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"net/http"
 	"tart-shop-manager/internal/common"
@@ -35,9 +36,10 @@ func CreateImageHandler(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 
+		uniqueFileName := uuid.New().String() + "-" + fileName
 		// Chuẩn bị dữ liệu để gửi vào business layer
 		data := &cloudutil.Image{
-			FileName:   fileName,
+			FileName:   uniqueFileName,
 			FileBuffer: fileBuffer,
 			// Thêm các trường khác nếu cần
 		}

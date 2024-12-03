@@ -17,10 +17,10 @@ import (
 func AuthRequire(db *gorm.DB, rdb *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		accessToken, errAccess := c.Cookie("access_token")
-		_, errRefresh := c.Cookie("refresh_token")
+		refreshToken, errRefresh := c.Cookie("refresh_token")
 
-		if errAccess != nil && errRefresh == nil {
-			c.JSON(http.StatusForbidden, common.TokenExpired("Access Token", errAccess))
+		if errAccess != nil && errRefresh == nil && refreshToken != "" {
+			c.JSON(http.StatusUnauthorized, common.TokenExpired("Access Token", errAccess))
 			c.Abort()
 			return
 		}
@@ -43,6 +43,7 @@ func AuthRequire(db *gorm.DB, rdb *redis.Client) gin.HandlerFunc {
 			switch err.Error() {
 			case "token is expired":
 				c.JSON(http.StatusUnauthorized, common.TokenExpired("Access Token", err))
+				return
 			case "token signature is invalid":
 				c.JSON(http.StatusUnauthorized, common.NewUnauthorized(err, "Token signature is invalid", "ErrInvalidTokenSignature", "ACCESS_TOKEN"))
 			case "invalid token issuer":
