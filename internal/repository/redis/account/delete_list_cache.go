@@ -1,4 +1,4 @@
-package ingredientcache
+package accountrdbstorage
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"tart-shop-manager/internal/common"
 )
 
-func (c *rdbStorage) DeleteListCache(ctx context.Context, entityName string) error {
+func (r *rdbStorage) DeleteListCache(ctx context.Context, entityName string) error {
 	var cursor uint64
 	var keys []string
 	var err error
@@ -14,7 +14,7 @@ func (c *rdbStorage) DeleteListCache(ctx context.Context, entityName string) err
 	// Sử dụng SCAN để tìm các keys bắt đầu với "cache:list:"
 	for {
 		var batch []string
-		batch, cursor, err = c.rdb.Scan(ctx, cursor, fmt.Sprintf("cache:List:%s:*", entityName), 100).Result()
+		batch, cursor, err = r.rdb.Scan(ctx, cursor, fmt.Sprintf("cache:List:%s:*", entityName), 100).Result()
 		if err != nil {
 			return common.ErrDB(err)
 		}
@@ -25,7 +25,7 @@ func (c *rdbStorage) DeleteListCache(ctx context.Context, entityName string) err
 	}
 
 	if len(keys) > 0 {
-		if err := c.rdb.Del(ctx, keys...).Err(); err != nil {
+		if err := r.rdb.Del(ctx, keys...).Err(); err != nil {
 			return common.ErrDB(err)
 		}
 	}
