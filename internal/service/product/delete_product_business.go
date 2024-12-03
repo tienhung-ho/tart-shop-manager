@@ -18,6 +18,7 @@ type DeleteProductStorage interface {
 
 type DeleteProductCache interface {
 	DeleteProduct(ctx context.Context, morekeys ...string) error
+	DeleteListCache(ctx context.Context, entityName string) error
 }
 
 type DeleteImageCloud interface {
@@ -126,6 +127,10 @@ func (biz *deleteProductBusiness) DeleteProduct(ctx context.Context, cond map[st
 	}
 
 	if err := biz.cache.DeleteProduct(ctx, key); err != nil {
+		return common.ErrCannotDeleteEntity(productmodel.EntityName, err)
+	}
+
+	if err := biz.cache.DeleteListCache(ctx, productmodel.EntityName); err != nil {
 		return common.ErrCannotDeleteEntity(productmodel.EntityName, err)
 	}
 

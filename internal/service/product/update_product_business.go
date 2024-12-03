@@ -2,6 +2,7 @@ package productbusiness
 
 import (
 	"context"
+	"log"
 	"sync"
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
@@ -56,95 +57,99 @@ func (biz *updateProductBusiness) UpdateProduct(ctx context.Context,
 		return nil, common.ErrCannotUpdateEntity(productmodel.EntityName, err)
 	}
 
-	// 3. Lấy danh sách hình ảnh cũ liên kết với sản phẩm
-	imageCond := map[string]interface{}{
-		"product_id": record.ProductID,
-	}
+	// Only proceed with image updates if data.Images is provided and not empty
+	if data.Images != nil && len(data.Images) > 0 {
+		// 3. Get existing images associated with the product
+		imageCond := map[string]interface{}{
+			"product_id": record.ProductID,
+		}
 
-	oldImages, err := biz.cloud.ListItem(ctx, imageCond)
+		oldImages, err := biz.cloud.ListItem(ctx, imageCond)
 
-	if err != nil {
-		return nil, common.ErrCannotListEntity(imagemodel.EntityName, err)
-	}
+		if err != nil {
+			return nil, common.ErrCannotListEntity(imagemodel.EntityName, err)
+		}
 
-	oldImageIDs := make(map[uint64]bool)
-	for _, img := range oldImages {
-		oldImageIDs[img.ImageID] = true
-	}
+		oldImageIDs := make(map[uint64]bool)
+		for _, img := range oldImages {
+			oldImageIDs[img.ImageID] = true
+		}
 
-	// 4. Xác định hình ảnh cần thêm và cần xóa
-	newImageIDs := make(map[uint64]bool)
-	for _, imgID := range data.Images {
-		newImageIDs[imgID.ImageID] = true
-	}
+		// 4. Determine images to add and remove
+		newImageIDs := make(map[uint64]bool)
+		for _, imgID := range data.Images {
+			newImageIDs[imgID.ImageID] = true
+		}
 
-	var imagesToAdd []uint64
-	var imagesToRemove []uint64
+		var imagesToAdd []uint64
+		var imagesToRemove []uint64
 
-	for imgID := range newImageIDs {
-		if !oldImageIDs[imgID] {
-			imagesToAdd = append(imagesToAdd, imgID)
+		for imgID := range newImageIDs {
+			if !oldImageIDs[imgID] {
+				imagesToAdd = append(imagesToAdd, imgID)
+			}
+		}
+
+		for imgID := range oldImageIDs {
+			if !newImageIDs[imgID] {
+				imagesToRemove = append(imagesToRemove, imgID)
+			}
+		}
+
+		// 5. Update ProductID for images to add and remove using goroutines
+		var wg sync.WaitGroup
+		var updateErr error
+		var mu sync.Mutex
+
+		// Limit the number of concurrent goroutines to prevent system overload
+		sem := make(chan struct{}, 10) // Limit to 10 goroutines
+
+		// Add new images (Update `ProductID` for these images)
+		log.Print(imagesToAdd)
+		for _, imgID := range imagesToAdd {
+			wg.Add(1)
+			sem <- struct{}{} // Acquire a token
+			go func(id uint64) {
+				defer wg.Done()
+				defer func() { <-sem }() // Release the token
+
+				err := biz.cloud.UpdateImage(ctx, map[string]interface{}{"image_id": id}, &imagemodel.UpdateImage{
+					ProductID: &record.ProductID,
+				})
+				if err != nil {
+					mu.Lock()
+					updateErr = err
+					mu.Unlock()
+				}
+			}(imgID)
+		}
+
+		// Remove old images (Set `ProductID` to NULL)
+		for _, imgID := range imagesToRemove {
+			wg.Add(1)
+			sem <- struct{}{}
+			go func(id uint64) {
+				defer wg.Done()
+				defer func() { <-sem }()
+
+				err := biz.cloud.DeleteImage(ctx, map[string]interface{}{"image_id": id})
+				if err != nil {
+					mu.Lock()
+					updateErr = err
+					mu.Unlock()
+				}
+			}(imgID)
+		}
+
+		wg.Wait()
+
+		if updateErr != nil {
+			// Handle error (rollback transaction if needed)
+			return nil, common.ErrCannotUpdateEntity("Image", updateErr)
 		}
 	}
 
-	for imgID := range oldImageIDs {
-		if !newImageIDs[imgID] {
-			imagesToRemove = append(imagesToRemove, imgID)
-		}
-	}
-
-	// 5. Cập nhật `ProductID` cho hình ảnh cần thêm và xóa sử dụng goroutines
-	var wg sync.WaitGroup
-	var updateErr error
-	var mu sync.Mutex
-
-	// Giới hạn số lượng goroutines chạy đồng thời để tránh làm quá tải hệ thống
-	sem := make(chan struct{}, 10) // Giới hạn 10 goroutines
-
-	// Thêm hình ảnh mới (Cập nhật `ProductID` cho các hình ảnh này)
-	for _, imgID := range imagesToAdd {
-		wg.Add(1)
-		sem <- struct{}{} // Acquire a token
-		go func(id uint64) {
-			defer wg.Done()
-			defer func() { <-sem }() // Release the token
-
-			err := biz.cloud.UpdateImage(ctx, map[string]interface{}{"image_id": id}, &imagemodel.UpdateImage{
-				ProductID: &record.ProductID,
-			})
-			if err != nil {
-				mu.Lock()
-				updateErr = err
-				mu.Unlock()
-			}
-		}(imgID)
-	}
-
-	// Xóa liên kết hình ảnh cũ (Đặt `ProductID` về NULL)
-	for _, imgID := range imagesToRemove {
-		wg.Add(1)
-		sem <- struct{}{}
-		go func(id uint64) {
-			defer wg.Done()
-			defer func() { <-sem }()
-
-			err := biz.cloud.DeleteImage(ctx, map[string]interface{}{"image_id": id})
-			if err != nil {
-				mu.Lock()
-				updateErr = err
-				mu.Unlock()
-			}
-		}(imgID)
-	}
-
-	wg.Wait()
-
-	if updateErr != nil {
-		// Xử lý lỗi (rollback transaction nếu cần)
-		return nil, common.ErrCannotUpdateEntity("Image", updateErr)
-	}
-
-	// 6. Xóa cache sản phẩm
+	// 6. Delete product cache
 	var pagging paggingcommon.Paging
 	pagging.Process()
 

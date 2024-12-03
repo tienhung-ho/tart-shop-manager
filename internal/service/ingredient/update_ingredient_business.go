@@ -2,7 +2,6 @@ package ingredientbusiness
 
 import (
 	"context"
-	"log"
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
@@ -18,6 +17,7 @@ type UpdateIngredientStorage interface {
 
 type UpdateIngredientCache interface {
 	DeleteIngredient(ctx context.Context, morekeys ...string) error
+	DeleteListCache(ctx context.Context, entityName string) error
 }
 
 type updateIngredientBusiness struct {
@@ -45,7 +45,6 @@ func (biz *updateIngredientBusiness) UpdateIngredient(ctx context.Context, cond 
 	updatedRecord, err := biz.store.UpdateIngredient(ctx, cond, ingredient, morekeys...)
 
 	if err != nil {
-		log.Print(err)
 		return nil, common.ErrCannotUpdateEntity(ingredientmodel.EntityName, err)
 	}
 
@@ -65,7 +64,10 @@ func (biz *updateIngredientBusiness) UpdateIngredient(ctx context.Context, cond 
 	}
 
 	if err := biz.cache.DeleteIngredient(ctx, key); err != nil {
-		log.Print(err)
+		return nil, common.ErrCannotDeleteEntity(ingredientmodel.EntityName, err)
+	}
+
+	if err := biz.cache.DeleteListCache(ctx, ingredientmodel.EntityName); err != nil {
 		return nil, common.ErrCannotDeleteEntity(ingredientmodel.EntityName, err)
 	}
 

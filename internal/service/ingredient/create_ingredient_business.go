@@ -12,12 +12,17 @@ type CreateIngredientStorage interface {
 	CreateIngredient(ctx context.Context, ingredient *ingredientmodel.CreateIngredient, morekeys ...string) (uint64, error)
 }
 
-type createIngredientBusiness struct {
-	store CreateIngredientStorage
+type CreateIngredientCache interface {
+	DeleteListCache(ctx context.Context, entityName string) error
 }
 
-func NewCreateIngredientBiz(store CreateIngredientStorage) *createIngredientBusiness {
-	return &createIngredientBusiness{store: store}
+type createIngredientBusiness struct {
+	store CreateIngredientStorage
+	cache CreateIngredientCache
+}
+
+func NewCreateIngredientBiz(store CreateIngredientStorage, cache CreateIngredientCache) *createIngredientBusiness {
+	return &createIngredientBusiness{store: store, cache: cache}
 }
 
 func (biz *createIngredientBusiness) CreateIngredient(ctx context.Context, ingredient *ingredientmodel.CreateIngredient, morekeys ...string) (uint64, error) {
@@ -36,6 +41,10 @@ func (biz *createIngredientBusiness) CreateIngredient(ctx context.Context, ingre
 	recordId, err := biz.store.CreateIngredient(ctx, ingredient, morekeys...)
 	if err != nil {
 		return 0, common.ErrCannotCreateEntity(ingredientmodel.EntityName, err)
+	}
+
+	if err := biz.cache.DeleteListCache(ctx, ingredientmodel.EntityName); err != nil {
+		return 0, common.ErrCannotDeleteEntity(ingredientmodel.EntityName, err)
 	}
 
 	return recordId, nil

@@ -17,6 +17,7 @@ type DeleteIngredientStorage interface {
 
 type DeleteIngredientCache interface {
 	DeleteIngredient(ctx context.Context, morekeys ...string) error
+	DeleteListCache(ctx context.Context, entityName string) error
 }
 
 type deleteIngredientBusiness struct {
@@ -63,6 +64,10 @@ func (biz *deleteIngredientBusiness) DeleteIngredient(ctx context.Context, cond 
 	}
 
 	if err := biz.cache.DeleteIngredient(ctx, key); err != nil {
+		return common.ErrCannotDeleteEntity(ingredientmodel.EntityName, err)
+	}
+
+	if err := biz.cache.DeleteListCache(ctx, ingredientmodel.EntityName); err != nil {
 		return common.ErrCannotDeleteEntity(ingredientmodel.EntityName, err)
 	}
 
