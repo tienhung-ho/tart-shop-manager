@@ -18,6 +18,7 @@ type DeleteAccountStorage interface {
 
 type DeleteAccountCache interface {
 	DeleteAccount(ctx context.Context, morekeys ...string) error
+	DeleteListCache(ctx context.Context, entityName string) error
 }
 
 type DeleteImage interface {
@@ -105,6 +106,10 @@ func (biz *deleteAccountBusiness) DeleteAccount(ctx context.Context, cond map[st
 	})
 	if err != nil {
 		return common.ErrCannotGenerateKey(accountmodel.EntityName, err)
+	}
+
+	if err := biz.cache.DeleteListCache(ctx, accountmodel.EntityName); err != nil {
+		return common.ErrCannotUpdateEntity(accountmodel.EntityName, err)
 	}
 
 	if err := biz.cache.DeleteAccount(ctx, key); err != nil {

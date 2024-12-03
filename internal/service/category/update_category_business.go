@@ -18,6 +18,7 @@ type UpdateCategoryStorage interface {
 
 type UpdateCategoryCache interface {
 	DeleteCategory(ctx context.Context, morekeys ...string) error
+	DeleteListCache(ctx context.Context, entityName string) error
 }
 
 type UpdateImage interface {
@@ -49,92 +50,92 @@ func (biz *updateCategoryBusiness) UpdateCategory(ctx context.Context, cond map[
 		return nil, common.ErrCannotUpdateEntity(categorymodel.EntityName, err)
 	}
 
-	// 3. Lấy danh sách hình ảnh cũ liên kết với sản phẩm
-	imageCond := map[string]interface{}{
-		"category_id": record.CategoryID,
-	}
-
-	oldImages, err := biz.image.ListItem(ctx, imageCond)
-
-	if err != nil {
-		return nil, common.ErrCannotListEntity(imagemodel.EntityName, err)
-	}
-
-	oldImageIDs := make(map[uint64]bool)
-	for _, img := range oldImages {
-		oldImageIDs[img.ImageID] = true
-	}
-
-	// 4. Xác định hình ảnh cần thêm và cần xóa
-	newImageIDs := make(map[uint64]bool)
-	for _, imgID := range data.Images {
-		newImageIDs[imgID.ImageID] = true
-	}
-
-	var imagesToAdd []uint64
-	var imagesToRemove []uint64
-
-	for imgID := range newImageIDs {
-		if !oldImageIDs[imgID] {
-			imagesToAdd = append(imagesToAdd, imgID)
+	if data.Images != nil && len(data.Images) > 0 {
+		// 3. Get existing images associated with the product
+		imageCond := map[string]interface{}{
+			"category_id": record.CategoryID,
 		}
-	}
 
-	for imgID := range oldImageIDs {
-		if !newImageIDs[imgID] {
-			imagesToRemove = append(imagesToRemove, imgID)
+		oldImages, err := biz.image.ListItem(ctx, imageCond)
+
+		if err != nil {
+			return nil, common.ErrCannotListEntity(imagemodel.EntityName, err)
 		}
-	}
 
-	// 5. Cập nhật `ProductID` cho hình ảnh cần thêm và xóa sử dụng goroutines
-	var wg sync.WaitGroup
-	var updateErr error
-	var mu sync.Mutex
+		oldImageIDs := make(map[uint64]bool)
+		for _, img := range oldImages {
+			oldImageIDs[img.ImageID] = true
+		}
 
-	// Giới hạn số lượng goroutines chạy đồng thời để tránh làm quá tải hệ thống
-	sem := make(chan struct{}, 10) // Giới hạn 10 goroutines
+		// 4. Determine images to add and remove
+		newImageIDs := make(map[uint64]bool)
+		for _, imgID := range data.Images {
+			newImageIDs[imgID.ImageID] = true
+		}
 
-	// Thêm hình ảnh mới (Cập nhật `ProductID` cho các hình ảnh này)
-	for _, imgID := range imagesToAdd {
-		wg.Add(1)
-		sem <- struct{}{} // Acquire a token
-		go func(id uint64) {
-			defer wg.Done()
-			defer func() { <-sem }() // Release the token
+		var imagesToAdd []uint64
+		var imagesToRemove []uint64
 
-			err := biz.image.UpdateImage(ctx, map[string]interface{}{"image_id": id}, &imagemodel.UpdateImage{
-				CategoryID: &record.CategoryID,
-			})
-			if err != nil {
-				mu.Lock()
-				updateErr = err
-				mu.Unlock()
+		for imgID := range newImageIDs {
+			if !oldImageIDs[imgID] {
+				imagesToAdd = append(imagesToAdd, imgID)
 			}
-		}(imgID)
-	}
+		}
 
-	// Xóa liên kết hình ảnh cũ (Đặt `ProductID` về NULL)
-	for _, imgID := range imagesToRemove {
-		wg.Add(1)
-		sem <- struct{}{}
-		go func(id uint64) {
-			defer wg.Done()
-			defer func() { <-sem }()
-
-			err := biz.image.DeleteImage(ctx, map[string]interface{}{"image_id": id})
-			if err != nil {
-				mu.Lock()
-				updateErr = err
-				mu.Unlock()
+		for imgID := range oldImageIDs {
+			if !newImageIDs[imgID] {
+				imagesToRemove = append(imagesToRemove, imgID)
 			}
-		}(imgID)
-	}
+		}
 
-	wg.Wait()
+		// 5. Update ProductID for images to add and remove using goroutines
+		var wg sync.WaitGroup
+		var updateErr error
+		var mu sync.Mutex
 
-	if updateErr != nil {
-		// Xử lý lỗi (rollback transaction nếu cần)
-		return nil, common.ErrCannotUpdateEntity("Image", updateErr)
+		// Limit the number of concurrent goroutines to prevent system overload
+		sem := make(chan struct{}, 10) // Limit to 10 goroutines
+		
+		for _, imgID := range imagesToAdd {
+			wg.Add(1)
+			sem <- struct{}{} // Acquire a token
+			go func(id uint64) {
+				defer wg.Done()
+				defer func() { <-sem }() // Release the token
+
+				err := biz.image.UpdateImage(ctx, map[string]interface{}{"image_id": id}, &imagemodel.UpdateImage{
+					CategoryID: &record.CategoryID,
+				})
+				if err != nil {
+					mu.Lock()
+					updateErr = err
+					mu.Unlock()
+				}
+			}(imgID)
+		}
+
+		for _, imgID := range imagesToRemove {
+			wg.Add(1)
+			sem <- struct{}{}
+			go func(id uint64) {
+				defer wg.Done()
+				defer func() { <-sem }()
+
+				err := biz.image.DeleteImage(ctx, map[string]interface{}{"image_id": id})
+				if err != nil {
+					mu.Lock()
+					updateErr = err
+					mu.Unlock()
+				}
+			}(imgID)
+		}
+
+		wg.Wait()
+
+		if updateErr != nil {
+			// Xử lý lỗi (rollback transaction nếu cần)
+			return nil, common.ErrCannotUpdateEntity("Image", updateErr)
+		}
 	}
 
 	var pagging paggingcommon.Paging
@@ -152,6 +153,10 @@ func (biz *updateCategoryBusiness) UpdateCategory(ctx context.Context, cond map[
 	}
 
 	if err := biz.cache.DeleteCategory(ctx, key); err != nil {
+		return nil, common.ErrCannotUpdateEntity(categorymodel.EntityName, err)
+	}
+
+	if err := biz.cache.DeleteListCache(ctx, categorymodel.EntityName); err != nil {
 		return nil, common.ErrCannotUpdateEntity(categorymodel.EntityName, err)
 	}
 

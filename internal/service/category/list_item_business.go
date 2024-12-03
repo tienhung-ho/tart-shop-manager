@@ -3,6 +3,7 @@ package categorybusiness
 import (
 	"context"
 	"errors"
+	"fmt"
 	"gorm.io/gorm"
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
@@ -18,6 +19,9 @@ type ListItemSotrage interface {
 type ListItemCache interface {
 	ListItem(ctx context.Context, key string) ([]categorymodel.Category, error)
 	SaveCategory(ctx context.Context, data interface{}, morekeys ...string) error
+	SavePaging(ctx context.Context, paging *paggingcommon.Paging, morekeys ...string) error
+	SaveFilter(ctx context.Context, filter *commonfilter.Filter, morekeys ...string) error
+	GetPaging(ctx context.Context, key string) (*paggingcommon.Paging, error)
 }
 
 type listItemCategoryBusiness struct {
@@ -41,18 +45,31 @@ func (biz *listItemCategoryBusiness) ListItem(ctx context.Context, cond map[stri
 		Paging:     pagingCopy,
 		Filter:     filterCopy,
 		MoreKeys:   morekeys,
+		KeyType:    fmt.Sprintf("List:%s:", categorymodel.EntityName),
 	})
+
+	categoryKey := key
+	pagingKey := key + ":paging"
 	if err != nil {
 		return nil, common.ErrCannotGenerateKey(categorymodel.EntityName, err)
 	}
 
-	records, err := biz.cache.ListItem(ctx, key)
+	records, err := biz.cache.ListItem(ctx, categoryKey)
 
 	if err != nil {
 		return nil, common.ErrCannotListEntity(categorymodel.EntityName, err)
 	}
 
 	if len(records) != 0 {
+
+		cachedPaging, err := biz.cache.GetPaging(ctx, pagingKey)
+		if err == nil {
+
+			paging.Page = cachedPaging.Page
+			paging.Total = cachedPaging.Total
+			paging.Limit = cachedPaging.Limit
+			paging.Sort = cachedPaging.Sort
+		}
 		return records, nil
 	}
 
@@ -70,6 +87,10 @@ func (biz *listItemCategoryBusiness) ListItem(ctx context.Context, cond map[stri
 	if len(records) != 0 {
 
 		if err := biz.cache.SaveCategory(ctx, records, key); err != nil {
+			return nil, common.ErrCannotCreateEntity(categorymodel.EntityName, err)
+		}
+
+		if err := biz.cache.SavePaging(ctx, paging, pagingKey); err != nil {
 			return nil, common.ErrCannotCreateEntity(categorymodel.EntityName, err)
 		}
 	}

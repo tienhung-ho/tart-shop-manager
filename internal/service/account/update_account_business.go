@@ -2,6 +2,8 @@ package accountbusiness
 
 import (
 	"context"
+	"os"
+	"strconv"
 	"sync"
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
@@ -12,6 +14,7 @@ import (
 	casbinbusiness "tart-shop-manager/internal/service/policies"
 	rolebusiness "tart-shop-manager/internal/service/role"
 	cacheutil "tart-shop-manager/internal/util/cache"
+	hashutil "tart-shop-manager/internal/util/hash"
 )
 
 type UpdateAccountStorage interface {
@@ -22,6 +25,7 @@ type UpdateAccountStorage interface {
 type UpdateAccountCache interface {
 	GetAccount(ctx context.Context, cond map[string]interface{}, morekeys ...string) (*accountmodel.Account, error)
 	DeleteAccount(ctx context.Context, morekeys ...string) error
+	DeleteListCache(ctx context.Context, entityName string) error
 }
 
 type UpdateImage interface {
@@ -50,97 +54,113 @@ func (biz *updateAccountBusiness) UpdateAccount(ctx context.Context, cond map[st
 		return nil, common.ErrNotFoundEntity(accountmodel.EntityName, err)
 	}
 
+	costEnv := os.Getenv("COST")
+	costInt, err := strconv.Atoi(costEnv)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if account.Password != nil {
+		hashUtil := hashutil.NewPasswordManager(costInt)
+		hashP, err := hashUtil.HashPassword(*account.Password)
+		if err != nil {
+			return nil, err
+		}
+		account.Password = &hashP
+	}
 	updatedRecord, err := biz.store.UpdateAccount(ctx, map[string]interface{}{"account_id": record.AccountID}, account, morekeys...)
 
 	if err != nil {
 		return nil, common.ErrCannotUpdateEntity(accountmodel.EntityName, err)
 	}
-
-	imageCond := map[string]interface{}{
-		"account_id": record.AccountID,
-	}
-
-	oldImages, err := biz.image.ListItem(ctx, imageCond)
-
-	if err != nil {
-		return nil, common.ErrCannotListEntity(imagemodel.EntityName, err)
-	}
-
-	oldImageIDs := make(map[uint64]bool)
-	for _, img := range oldImages {
-		oldImageIDs[img.ImageID] = true
-	}
-
-	// 4. Xác định hình ảnh cần thêm và cần xóa
-	newImageIDs := make(map[uint64]bool)
-	for _, imgID := range account.Images {
-		newImageIDs[imgID.ImageID] = true
-	}
-
-	var imagesToAdd []uint64
-	var imagesToRemove []uint64
-
-	for imgID := range newImageIDs {
-		if !oldImageIDs[imgID] {
-			imagesToAdd = append(imagesToAdd, imgID)
+	if account.Images != nil && len(account.Images) > 0 {
+		imageCond := map[string]interface{}{
+			"account_id": record.AccountID,
 		}
-	}
 
-	for imgID := range oldImageIDs {
-		if !newImageIDs[imgID] {
-			imagesToRemove = append(imagesToRemove, imgID)
+		oldImages, err := biz.image.ListItem(ctx, imageCond)
+
+		if err != nil {
+			return nil, common.ErrCannotListEntity(imagemodel.EntityName, err)
 		}
-	}
 
-	// 5. Cập nhật `ProductID` cho hình ảnh cần thêm và xóa sử dụng goroutines
-	var wg sync.WaitGroup
-	var updateErr error
-	var mu sync.Mutex
+		oldImageIDs := make(map[uint64]bool)
+		for _, img := range oldImages {
+			oldImageIDs[img.ImageID] = true
+		}
 
-	// Giới hạn số lượng goroutines chạy đồng thời để tránh làm quá tải hệ thống
-	sem := make(chan struct{}, 10) // Giới hạn 10 goroutines
+		// 4. Xác định hình ảnh cần thêm và cần xóa
+		newImageIDs := make(map[uint64]bool)
+		for _, imgID := range account.Images {
+			newImageIDs[imgID.ImageID] = true
+		}
 
-	// Thêm hình ảnh mới (Cập nhật `ProductID` cho các hình ảnh này)
-	for _, imgID := range imagesToAdd {
-		wg.Add(1)
-		sem <- struct{}{} // Acquire a token
-		go func(id uint64) {
-			defer wg.Done()
-			defer func() { <-sem }() // Release the token
+		var imagesToAdd []uint64
+		var imagesToRemove []uint64
 
-			err := biz.image.UpdateImage(ctx, map[string]interface{}{"image_id": id}, &imagemodel.UpdateImage{
-				AccountID: &record.AccountID,
-			})
-			if err != nil {
-				mu.Lock()
-				updateErr = err
-				mu.Unlock()
+		for imgID := range newImageIDs {
+			if !oldImageIDs[imgID] {
+				imagesToAdd = append(imagesToAdd, imgID)
 			}
-		}(imgID)
-	}
+		}
 
-	// Xóa liên kết hình ảnh cũ (Đặt `ProductID` về NULL)
-	for _, imgID := range imagesToRemove {
-		wg.Add(1)
-		sem <- struct{}{}
-		go func(id uint64) {
-			defer wg.Done()
-			defer func() { <-sem }()
-
-			err := biz.image.DeleteImage(ctx, map[string]interface{}{"image_id": id})
-			if err != nil {
-				mu.Lock()
-				updateErr = err
-				mu.Unlock()
+		for imgID := range oldImageIDs {
+			if !newImageIDs[imgID] {
+				imagesToRemove = append(imagesToRemove, imgID)
 			}
-		}(imgID)
-	}
+		}
 
-	wg.Wait()
+		// 5. Cập nhật `ProductID` cho hình ảnh cần thêm và xóa sử dụng goroutines
+		var wg sync.WaitGroup
+		var updateErr error
+		var mu sync.Mutex
 
-	if updateErr != nil {
-		// Xử lý lỗi (rollback transaction nếu cần)
-		return nil, common.ErrCannotUpdateEntity("Image", updateErr)
+		// Giới hạn số lượng goroutines chạy đồng thời để tránh làm quá tải hệ thống
+		sem := make(chan struct{}, 10) // Giới hạn 10 goroutines
+
+		// Thêm hình ảnh mới (Cập nhật `ProductID` cho các hình ảnh này)
+		for _, imgID := range imagesToAdd {
+			wg.Add(1)
+			sem <- struct{}{} // Acquire a token
+			go func(id uint64) {
+				defer wg.Done()
+				defer func() { <-sem }() // Release the token
+
+				err := biz.image.UpdateImage(ctx, map[string]interface{}{"image_id": id}, &imagemodel.UpdateImage{
+					AccountID: &record.AccountID,
+				})
+				if err != nil {
+					mu.Lock()
+					updateErr = err
+					mu.Unlock()
+				}
+			}(imgID)
+		}
+
+		// Xóa liên kết hình ảnh cũ (Đặt `ProductID` về NULL)
+		for _, imgID := range imagesToRemove {
+			wg.Add(1)
+			sem <- struct{}{}
+			go func(id uint64) {
+				defer wg.Done()
+				defer func() { <-sem }()
+
+				err := biz.image.DeleteImage(ctx, map[string]interface{}{"image_id": id})
+				if err != nil {
+					mu.Lock()
+					updateErr = err
+					mu.Unlock()
+				}
+			}(imgID)
+		}
+
+		wg.Wait()
+
+		if updateErr != nil {
+			// Xử lý lỗi (rollback transaction nếu cần)
+			return nil, common.ErrCannotUpdateEntity("Image", updateErr)
+		}
 	}
 	var pagging paggingcommon.Paging
 	pagging.Process()
@@ -157,6 +177,10 @@ func (biz *updateAccountBusiness) UpdateAccount(ctx context.Context, cond map[st
 	}
 
 	if err := biz.cache.DeleteAccount(ctx, key); err != nil {
+		return nil, common.ErrCannotUpdateEntity(accountmodel.EntityName, err)
+	}
+
+	if err := biz.cache.DeleteListCache(ctx, accountmodel.EntityName); err != nil {
 		return nil, common.ErrCannotUpdateEntity(accountmodel.EntityName, err)
 	}
 

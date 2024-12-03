@@ -17,14 +17,19 @@ type CreateAccountBusiness interface {
 	GetAccount(ctx context.Context, cond map[string]interface{}, morekeys ...string) (*accountmodel.Account, error)
 }
 
+type CreateAccountCache interface {
+	DeleteListCache(ctx context.Context, entityName string) error
+}
+
 type createAccountBusiness struct {
 	store     CreateAccountBusiness
+	cache     CreateAccountCache
 	roleStore rolebusiness.GetRoleStorage
 	auth      casbinbusiness.Authorization
 }
 
-func NewCreateAccountbiz(store CreateAccountBusiness, roleStore rolebusiness.GetRoleStorage, auth casbinbusiness.Authorization) *createAccountBusiness {
-	return &createAccountBusiness{store: store, roleStore: roleStore, auth: auth}
+func NewCreateAccountbiz(store CreateAccountBusiness, cache CreateAccountCache, roleStore rolebusiness.GetRoleStorage, auth casbinbusiness.Authorization) *createAccountBusiness {
+	return &createAccountBusiness{store: store, cache: cache, roleStore: roleStore, auth: auth}
 }
 
 func (biz *createAccountBusiness) CreateAccount(ctx context.Context, data *accountmodel.CreateAccount, morekeys ...string) (uint64, error) {
@@ -60,6 +65,10 @@ func (biz *createAccountBusiness) CreateAccount(ctx context.Context, data *accou
 			return 0, common.ErrCannotCreateEntity("user roles", err)
 		}
 
+	}
+
+	if err := biz.cache.DeleteListCache(ctx, accountmodel.EntityName); err != nil {
+		return 0, common.ErrCannotUpdateEntity(accountmodel.EntityName, err)
 	}
 
 	return recordId, nil

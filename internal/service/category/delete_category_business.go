@@ -19,6 +19,7 @@ type DeleteCategoryStorage interface {
 
 type DeleteCategoryCache interface {
 	DeleteCategory(ctx context.Context, morekeys ...string) error
+	DeleteListCache(ctx context.Context, entityName string) error
 }
 
 type DeleteImage interface {
@@ -111,6 +112,10 @@ func (biz *deleteCategoryBusiness) DeleteCategory(ctx context.Context, cond map[
 
 	if err := biz.cache.DeleteCategory(ctx, key); err != nil {
 		return common.ErrCannotUpdateEntity(accountmodel.EntityName, err)
+	}
+
+	if err := biz.cache.DeleteListCache(ctx, categorymodel.EntityName); err != nil {
+		return common.ErrCannotUpdateEntity(categorymodel.EntityName, err)
 	}
 
 	return nil

@@ -13,13 +13,18 @@ type CreateCategoryStorage interface {
 	CreateCategory(ctx context.Context, data *categorymodel.CreateCategory, morekeys ...string) (uint64, error)
 }
 
+type CreateCategoryCache interface {
+	DeleteListCache(ctx context.Context, entityName string) error
+}
+
 type createCategoryBusiness struct {
 	store      CreateCategoryStorage
+	cache      CreateCategoryCache
 	imageStore UpdateImage
 }
 
-func NewCreateCategoryBusiness(store CreateCategoryStorage, imageStore UpdateImage) *createCategoryBusiness {
-	return &createCategoryBusiness{store, imageStore}
+func NewCreateCategoryBusiness(store CreateCategoryStorage, cache CreateCategoryCache, imageStore UpdateImage) *createCategoryBusiness {
+	return &createCategoryBusiness{store, cache, imageStore}
 }
 
 func (biz *createCategoryBusiness) CreateCategory(ctx context.Context, data *categorymodel.CreateCategory, morekeys ...string) (uint64, error) {
@@ -117,6 +122,10 @@ func (biz *createCategoryBusiness) CreateCategory(ctx context.Context, data *cat
 	if updateErr != nil {
 		// Xử lý lỗi (rollback transaction nếu cần)
 		return 0, common.ErrCannotUpdateEntity("Image", updateErr)
+	}
+
+	if err := biz.cache.DeleteListCache(ctx, categorymodel.EntityName); err != nil {
+		return 0, common.ErrCannotUpdateEntity(categorymodel.EntityName, err)
 	}
 
 	return recordID, nil
