@@ -12,6 +12,7 @@ import (
 	imagev1 "tart-shop-manager/api/router/v1/image"
 	ingredientv1 "tart-shop-manager/api/router/v1/ingredient"
 	orderv1 "tart-shop-manager/api/router/v1/order"
+	permissionv1 "tart-shop-manager/api/router/v1/permission"
 	productv1 "tart-shop-manager/api/router/v1/product"
 	recipev1 "tart-shop-manager/api/router/v1/recipe"
 	reportv1 "tart-shop-manager/api/router/v1/report"
@@ -90,6 +91,10 @@ func NewRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
 		report := v1.Group("/report")
 		{
 			reportv1.ReportRouter(report, db, rdb)
+		}
+		permission := v1.Group("/permission")
+		{
+			permissionv1.PermissionRouter(permission, db, rdb)
 		}
 	}
 	return r

@@ -10,8 +10,8 @@ import (
 func AccountRouter(acc *gin.RouterGroup, db *gorm.DB, rdb *redis.Client) {
 
 	acc.GET("/:id", accounthandler.GetAccountHandler(db, rdb))
-	//acc.POST("/login", authhandler.LoginHandler(db))
-	acc.POST("/", accounthandler.CreateAccountHandler(db))
+	acc.GET("/", accounthandler.GetAccountWithAccessTokenHandler(db, rdb))
+	acc.POST("/", accounthandler.CreateAccountHandler(db, rdb))
 	acc.PATCH("/:id", accounthandler.UpdateAccountHandler(db, rdb))
 	acc.DELETE("/:id", accounthandler.DeleteAccountHandler(db, rdb))
 	acc.GET("/list", accounthandler.ListAccountHandler(db, rdb))
