@@ -30,11 +30,11 @@ type Account struct {
 	Role      *rolemodel.Role    `gorm:"foreignKey:RoleID;references:RoleID" json:"role"`
 	Phone     string             `gorm:"column:phone;size:20;not null;unique" json:"phone"`
 	Fullname  string             `gorm:"column:fullname;size:300" json:"fullname"`
-	Password  string             `gorm:"column:password;size:200;not null" json:"password"`
+	Password  string             `gorm:"column:password;size:200;not null" json:"-"`
 	Email     string             `gorm:"column:email;size:100;not null;unique" json:"email"`
 	Images    []imagemodel.Image `gorm:"foreignKey:AccountID;references:AccountID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"images"`
 	Gender    *common.Gender     `gorm:"column:gender;type:enum('Male', 'Female', 'Other')" json:"gender"`
-	*common.CommonFields
+	common.CommonFields
 }
 
 func (Account) TableName() string {
@@ -50,6 +50,7 @@ func (a Account) ToCreateAccount() *accountrdbmodel.CreateAccountRdb {
 		Password:  a.Password,
 		Email:     a.Email,
 		Gender:    a.Gender,
+		Images:    a.Images,
 		Role:      a.Role,
 		CommonFields: &common.CommonFields{
 			CreatedAt: a.CreatedAt,
@@ -70,7 +71,7 @@ func (a Account) ToSimpleAccount() *Account {
 		Role:      a.Role,
 		Email:     a.Email,
 		Gender:    a.Gender,
-		CommonFields: &common.CommonFields{
+		CommonFields: common.CommonFields{
 			Status: a.Status,
 		},
 	}

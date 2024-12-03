@@ -32,6 +32,7 @@ func (s StockBatch) ToCreateStockBatch() *stockbatchcachemodel.CreateStockBatch 
 		ExpirationDate: s.ExpirationDate,
 		ReceivedDate:   s.ReceivedDate,
 		IngredientID:   s.IngredientID,
+		Ingredient:     s.Ingredient,
 		CommonFields:   s.CommonFields,
 	}
 }

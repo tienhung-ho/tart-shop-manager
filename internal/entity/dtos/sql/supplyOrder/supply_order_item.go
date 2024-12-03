@@ -31,6 +31,16 @@ type SupplyOrderItem struct {
 	common.CommonFields
 }
 
+type SimpleSupplyOrderItemIngredient struct {
+	Price        float64 `gorm:"column:price;type:decimal(10,2);not null" json:"price"`
+	Unit         string  `gorm:"column:unit;type:varchar(200);not null" json:"unit"`
+	IngredientID uint64  `gorm:"column:ingredient_id;not null;index" json:"ingredient_id"`
+}
+
+func (SimpleSupplyOrderItemIngredient) TableName() string {
+	return "SupplyOrderItem"
+}
+
 func (SupplyOrderItem) TableName() string {
 	return "SupplyOrderItem"
 }

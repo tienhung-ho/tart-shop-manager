@@ -39,6 +39,7 @@ func (c Category) ToCreateCategoryCache() *categorycachemodel.CreateCategory {
 	return &categorycachemodel.CreateCategory{
 		CategoryID:  c.CategoryID,
 		Name:        c.Name,
+		Images:      c.Images,
 		Description: c.Description,
 		CommonFields: &common.CommonFields{
 			Status: c.Status,
