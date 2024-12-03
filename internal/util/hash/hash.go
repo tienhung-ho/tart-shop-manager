@@ -23,6 +23,14 @@ func (pm *passwordManager) HashPassword(password string) (string, error) {
 	return string(hash), nil
 }
 
+func (pm *passwordManager) HashName(name string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(name), pm.cost)
+	if err != nil {
+		return "", err
+	}
+	return string(hash), nil
+}
+
 // VerifyPassword so sánh mật khẩu với hash đã lưu
 func (pm *passwordManager) VerifyPassword(hash, passwordLogin string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(passwordLogin))
