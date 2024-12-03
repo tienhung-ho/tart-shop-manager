@@ -125,7 +125,7 @@ func (r *mysqlSupplyOrder) ListItem(ctx context.Context, cond map[string]interfa
 }
 
 func (r *mysqlSupplyOrder) buildBaseQuery(db *gorm.DB, cond map[string]interface{}) *gorm.DB {
-	return db.Table("SupplyOrder").
+	return db.Model(&supplyordermodel.SupplyOrder{}).
 		Where(cond)
 }
 
@@ -134,20 +134,43 @@ func (r *mysqlSupplyOrder) applyFilters(query *gorm.DB, filter *commonfilter.Fil
 		return query
 	}
 
-	if filter.Ingredient != nil {
-		query = query.Where("ingredient_id = ?", filter.Ingredient)
+	if filter.IngredientID != nil {
+		query = query.Where("ingredient_id = ?", filter.IngredientID)
 	}
 
 	if filter.Search != "" {
-		query = query.Where("SupplyOrder.description LIKE ?", "%"+filter.Search+"%")
+		query = query.Where("description LIKE ?", "%"+filter.Search+"%")
 	}
 
 	if filter.MinPrice > 0 {
-		query = query.Where("SupplyOrder.total_amount >= ?", filter.MinPrice)
+		query = query.Where("total_amount >= ?", filter.MinPrice)
 	}
 
 	if filter.MaxPrice > 0 {
-		query = query.Where("SupplyOrder.total_amount <= ?", filter.MaxPrice)
+		query = query.Where("total_amount <= ?", filter.MaxPrice)
+	}
+
+	if filter.StartDate != nil && filter.EndDate != nil {
+		query = query.Where("order_date BETWEEN ? AND ?", filter.StartDate, filter.EndDate)
+	} else if filter.StartDate != nil {
+		query = query.Where("order_date >= ?", filter.StartDate)
+	} else if filter.EndDate != nil {
+		query = query.Where("order_date <= ?", filter.EndDate)
+	}
+
+	// Apply date filters on associated StockBatch
+	if filter.StartExpirationDate != nil || filter.EndExpirationDate != nil ||
+		filter.StartReceivedDate != nil || filter.EndReceivedDate != nil ||
+		filter.ExpirationDate != nil || filter.ReceivedDate != nil {
+
+		subQuery := r.db.Model(&supplyordermodel.SupplyOrderItem{}).
+			Select("supplyorder_id").
+			Joins("JOIN StockBatch ON StockBatch.stockbatch_id = SupplyOrderItem.stockbatch_id").
+			Scopes(func(db *gorm.DB) *gorm.DB {
+				return r.applyDateFilter(db, filter)
+			})
+
+		query = query.Where("SupplyOrder.supplyorder_id IN (?)", subQuery)
 	}
 
 	return query
@@ -156,28 +179,36 @@ func (r *mysqlSupplyOrder) applyFilters(query *gorm.DB, filter *commonfilter.Fil
 // applyDateFilter áp dụng bộ lọc ngày
 func (r *mysqlSupplyOrder) applyDateFilter(query *gorm.DB, filter *commonfilter.Filter) *gorm.DB {
 	if filter.StartExpirationDate != nil {
-		query = query.Where("(StockBatch.expiration_date >= ?)", filter.StartExpirationDate)
+		query = query.Where("StockBatch.expiration_date >= ?", filter.StartExpirationDate)
 	}
 
 	if filter.EndExpirationDate != nil {
-		query = query.Where("(StockBatch.expiration_date <= ?)", filter.EndExpirationDate)
+		query = query.Where("StockBatch.expiration_date <= ?", filter.EndExpirationDate)
 	}
 
 	if filter.StartReceivedDate != nil {
-		query = query.Where("(StockBatch.received_date >= ?)", filter.StartReceivedDate)
+		query = query.Where("StockBatch.received_date >= ?", filter.StartReceivedDate)
 	}
 
 	if filter.EndReceivedDate != nil {
-		query = query.Where("(StockBatch.received_date <= ?)", filter.EndReceivedDate)
+		query = query.Where("StockBatch.received_date <= ?", filter.EndReceivedDate)
 	}
 
 	if filter.ExpirationDate != nil {
-		query = query.Where("(StockBatch.expiration_date = ?)", filter.ExpirationDate)
+		query = query.Where("StockBatch.expiration_date = ?", filter.ExpirationDate)
 	}
 
 	if filter.ReceivedDate != nil {
-		query = query.Where("(StockBatch.received_date = ?)", filter.ReceivedDate)
+		query = query.Where("StockBatch.received_date = ?", filter.ReceivedDate)
 	}
+
+	return query
+}
+
+func (r *mysqlSupplyOrder) applyOrderDateFilter(query *gorm.DB, filter *commonfilter.Filter) *gorm.DB {
+	//if filter.StartExpirationDate != nil {
+	//	query = query.Where("(order_date = ?)", filter.OrderDate)
+	//}
 
 	return query
 }
@@ -220,7 +251,7 @@ func (r *mysqlSupplyOrder) supplyOrderItemsPreloadCondition(filter *commonfilter
 		if filter == nil {
 			return db
 		}
-		return r.applyDateFilter(db, filter)
+		return r.applyOrderDateFilter(db, filter)
 	}
 }
 

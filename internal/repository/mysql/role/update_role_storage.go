@@ -35,21 +35,22 @@ func (s *mysqlRole) UpdateRole(ctx context.Context, cond map[string]interface{},
 	}
 
 	// Nếu có permissions mới, xử lý cập nhật bảng nối
-	if len(data.Permissions) > 0 {
-		var role rolemodel.Role
+	//log.Print(data.Permissions != nil)
+	//if data.Permissions != nil {
+	var role rolemodel.Role
 
-		// Lấy thông tin role
-		if err := db.WithContext(ctx).Where(cond).First(&role).Error; err != nil {
-			db.Rollback() // Rollback nếu không tìm thấy role
-			return common.ErrDB(err)
-		}
-
-		// Thay thế các permissions mới
-		if err := db.Model(&role).Association("Permissions").Replace(data.Permissions); err != nil {
-			db.Rollback() // Rollback nếu thay thế thất bại
-			return common.ErrDB(err)
-		}
+	// Lấy thông tin role
+	if err := db.WithContext(ctx).Where(cond).First(&role).Error; err != nil {
+		db.Rollback() // Rollback nếu không tìm thấy role
+		return common.ErrDB(err)
 	}
+
+	// Thay thế các permissions mới
+	if err := db.Model(&role).Association("Permissions").Replace(data.Permissions); err != nil {
+		db.Rollback() // Rollback nếu thay thế thất bại
+		return common.ErrDB(err)
+	}
+	//}
 
 	// Commit transaction nếu không có lỗi
 	if err := db.Commit().Error; err != nil {

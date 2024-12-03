@@ -10,9 +10,9 @@ import (
 	responseutil "tart-shop-manager/internal/util/response"
 )
 
-func (s *mysqlStockBatch) CreateStockBatch(ctx context.Context, data *stockbatchmodel.CreateStockBatch, morekeys ...string) (uint64, error) {
+func (r *mysqlStockBatch) CreateStockBatch(ctx context.Context, data *stockbatchmodel.CreateStockBatch, morekeys ...string) (uint64, error) {
 
-	db := s.db.Begin()
+	db := r.db.Begin()
 
 	if db.Error != nil {
 		return 0, common.ErrDB(db.Error)
@@ -46,12 +46,12 @@ func (s *mysqlStockBatch) CreateStockBatch(ctx context.Context, data *stockbatch
 	return data.StockBatchID, nil
 }
 
-func (s *mysqlStockBatch) CreateStockBatches(ctx context.Context, data []stockbatchmodel.CreateStockBatch) ([]uint64, error) {
+func (r *mysqlStockBatch) CreateStockBatches(ctx context.Context, data []stockbatchmodel.CreateStockBatch) ([]uint64, error) {
 	if len(data) == 0 {
 		return nil, nil
 	}
 
-	tx := s.db.Begin()
+	tx := r.db.Begin()
 	if tx.Error != nil {
 		return nil, common.ErrDB(tx.Error)
 	}

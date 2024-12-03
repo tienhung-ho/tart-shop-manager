@@ -10,7 +10,11 @@ func (s *mysqlRecipe) GetRecipe(ctx context.Context, cond map[string]interface{}
 	db := s.db
 
 	var recipe recipemodel.Recipe
-	if err := db.WithContext(ctx).Select(SelectFields).Where(cond).Preload("RecipeIngredients").Preload("Product").First(&recipe).Error; err != nil {
+	if err := db.WithContext(ctx).Select(SelectFields).Where(cond).
+		Preload("RecipeIngredients.Ingredient").
+		Preload("RecipeIngredients").
+		Preload("Product").
+		First(&recipe).Error; err != nil {
 
 		return nil, err
 	}

@@ -9,10 +9,10 @@ import (
 	stockbatchmodel "tart-shop-manager/internal/entity/dtos/sql/stockbatch"
 )
 
-func (s *mysqlStockBatch) GetStockBatch(ctx context.Context, cond map[string]interface{}) (*stockbatchmodel.StockBatch, error) {
+func (r *mysqlStockBatch) GetStockBatch(ctx context.Context, cond map[string]interface{}) (*stockbatchmodel.StockBatch, error) {
 	var stockBatch stockbatchmodel.StockBatch
 
-	if err := s.db.WithContext(ctx).
+	if err := r.db.WithContext(ctx).
 		Where(cond).
 		Preload("Ingredient").
 		First(&stockBatch).Error; err != nil {
@@ -25,14 +25,14 @@ func (s *mysqlStockBatch) GetStockBatch(ctx context.Context, cond map[string]int
 }
 
 // GetStockBatchesByIngredientIDs fetches all stock batches for given ingredientIDs ordered by expiration_date ASC.
-func (s *mysqlStockBatch) GetStockBatchesByIngredientIDs(ctx context.Context,
+func (r *mysqlStockBatch) GetStockBatchesByIngredientIDs(ctx context.Context,
 	ingredientIDs []uint64) ([]stockbatchmodel.StockBatch, error) {
 	if len(ingredientIDs) == 0 {
 		return nil, fmt.Errorf("no ingredient IDs provided")
 	}
 
 	var stockBatches []stockbatchmodel.StockBatch
-	err := s.db.WithContext(ctx).
+	err := r.db.WithContext(ctx).
 		Where("ingredient_id IN ?", ingredientIDs).
 		Order("ingredient_id ASC, expiration_date ASC").
 		Find(&stockBatches).Error

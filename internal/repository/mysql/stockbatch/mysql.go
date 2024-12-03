@@ -9,6 +9,7 @@ type mysqlStockBatch struct {
 var (
 	AllowedSortFields = map[string]bool{
 		"stockbatch_id":   true,
+		"ingredient_id":   true,
 		"quantity":        true,
 		"expiration_date": true,
 		"received_date":   true,

@@ -25,8 +25,11 @@ func (s *mysqlRole) ListItemRole(ctx context.Context, cond map[string]interface{
 	query := s.buildQuery(db, cond, filter)
 
 	// Thêm phân trang
-	query = s.addPaging(query, paging)
-
+	// Add pagination and sorting
+	query, err := s.addPaging(query, paging)
+	if err != nil {
+		return nil, err
+	}
 	// Thực hiện truy vấn
 	var records []rolemodel.Role
 	if err := query.
@@ -67,6 +70,26 @@ func (s *mysqlRole) buildQuery(db *gorm.DB, cond map[string]interface{}, filter 
 	return db
 }
 
-func (s *mysqlRole) addPaging(db *gorm.DB, paging *paggingcommon.Paging) *gorm.DB {
-	return db.Order("role_id desc").Offset((paging.Page - 1) * paging.Limit).Limit(paging.Limit)
+func (s *mysqlRole) addPaging(db *gorm.DB, paging *paggingcommon.Paging) (*gorm.DB, error) {
+	// Parse and validate the sort fields
+	sortFields, err := paging.ParseSortFields(paging.Sort, AllowedSortFields)
+	if err != nil {
+		return nil, common.NewErrorResponse(err, "Invalid sort parameters", err.Error(), "InvalidSort")
+	}
+
+	// Apply sorting to the query
+	if len(sortFields) > 0 {
+		for _, sortField := range sortFields {
+			db = db.Order(sortField)
+		}
+	} else {
+		// Default sorting if no sort parameters are provided
+		db = db.Order("role_id desc")
+	}
+
+	// Apply pagination
+	offset := (paging.Page - 1) * paging.Limit
+	db = db.Offset(offset).Limit(paging.Limit)
+
+	return db, nil
 }

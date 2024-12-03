@@ -51,8 +51,8 @@ func (r *mysqlReportOrder) applyFiltersSupply(query *gorm.DB, filter *commonfilt
 		return query
 	}
 
-	if filter.Ingredient != nil {
-		query = query.Where("ingredient_id = ?", filter.Ingredient)
+	if filter.IngredientID != nil {
+		query = query.Where("ingredient_id = ?", filter.IngredientID)
 	}
 
 	if filter.MinPrice > 0 {

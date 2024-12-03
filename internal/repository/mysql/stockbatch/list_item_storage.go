@@ -54,7 +54,7 @@ func (r *mysqlStockBatch) buildQuery(db *gorm.DB, cond map[string]interface{},
 	db = db.Where(cond)
 	if filter != nil {
 		if filter.Status != "" {
-			db = db.Where("status IN ?", filter.Status)
+			db = db.Where("status = ?", filter.Status)
 		}
 
 		if filter.Search != "" {
@@ -62,19 +62,34 @@ func (r *mysqlStockBatch) buildQuery(db *gorm.DB, cond map[string]interface{},
 			db = db.Where("name LIKE ? OR description LIKE ?", searchPattern, searchPattern)
 		}
 
-		if filter.Ingredient != nil {
-			db = db.Where("ingredient_id = ?", filter.Ingredient)
+		if filter.IngredientID != nil {
+			db = db.Where("ingredient_id = ?", filter.IngredientID)
 		}
 
-		// Thêm điều kiện lọc theo khoảng thời gian
-		if filter.StartDate != nil && filter.EndDate != nil {
-			// Giả sử bạn muốn lọc theo trường `received_date`
-			db = db.Where("expiration_date BETWEEN ? AND ?", *filter.StartDate, *filter.EndDate)
-		} else if filter.StartDate != nil {
-			db = db.Where("expiration_date >= ?", *filter.StartDate)
-		} else if filter.EndDate != nil {
-			db = db.Where("expiration_date <= ?", *filter.EndDate)
+		if filter.StartExpirationDate != nil {
+			db = db.Where("StockBatch.expiration_date >= ?", filter.StartExpirationDate)
 		}
+
+		if filter.EndExpirationDate != nil {
+			db = db.Where("StockBatch.expiration_date <= ?", filter.EndExpirationDate)
+		}
+
+		if filter.StartReceivedDate != nil {
+			db = db.Where("StockBatch.received_date >= ?", filter.StartReceivedDate)
+		}
+
+		if filter.EndReceivedDate != nil {
+			db = db.Where("StockBatch.received_date <= ?", filter.EndReceivedDate)
+		}
+
+		if filter.ExpirationDate != nil {
+			db = db.Where("StockBatch.expiration_date = ?", filter.ExpirationDate)
+		}
+
+		if filter.ReceivedDate != nil {
+			db = db.Where("StockBatch.received_date = ?", filter.ReceivedDate)
+		}
+
 	}
 	return db
 }

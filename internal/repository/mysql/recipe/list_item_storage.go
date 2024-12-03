@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"gorm.io/gorm"
+	"log"
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
@@ -60,24 +61,22 @@ func (s *mysqlRecipe) buildQuery(db *gorm.DB, cond map[string]interface{}, filte
 	db = db.Where(cond)
 	if filter != nil {
 		if filter.Status != "" {
-			db = db.Where("status IN ?", filter.Status)
+			log.Print(filter.Status)
+
+			db = db.Where("Recipe.status = ?", filter.Status)
 		}
 
 		if filter.Search != "" {
 			searchPattern := "%" + filter.Search + "%"
-			db = db.Where("name LIKE ? OR description LIKE ?", searchPattern, searchPattern)
-		}
-
-		if filter.CategoryID != 0 {
-			db = db.Where("category_id = ?", filter.CategoryID)
+			db = db.Where("Recipe.description LIKE ?", searchPattern)
 		}
 
 		if filter.MinPrice > 0 {
-			db = db.Where("price >= ?", filter.MinPrice)
+			db = db.Where("cost >= ?", filter.MinPrice)
 		}
 
 		if filter.MaxPrice > 0 {
-			db = db.Where("price <= ?", filter.MaxPrice)
+			db = db.Where("cost <= ?", filter.MaxPrice)
 		}
 
 		if len(filter.IDs) > 0 {

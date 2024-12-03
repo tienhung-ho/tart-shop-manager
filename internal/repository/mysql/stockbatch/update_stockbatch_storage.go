@@ -90,14 +90,14 @@ import (
 //	}
 //
 // UpdateStockBatches updates multiple StockBatch records in a single query
-func (s *mysqlStockBatch) UpdateStockBatches(ctx context.Context, cond map[string]interface{},
+func (r *mysqlStockBatch) UpdateStockBatches(ctx context.Context, cond map[string]interface{},
 	data []stockbatchmodel.UpdateStockBatch) ([]uint64, error) {
 	if len(data) == 0 {
 		return nil, nil
 	}
 
 	// Bắt đầu transaction
-	tx := s.db.WithContext(ctx).Begin()
+	tx := r.db.WithContext(ctx).Begin()
 	if tx.Error != nil {
 		return nil, common.ErrDB(tx.Error)
 	}
@@ -198,10 +198,10 @@ func (s *mysqlStockBatch) UpdateStockBatches(ctx context.Context, cond map[strin
 	return stockBatchIDs, nil
 }
 
-func (s *mysqlStockBatch) UpdateStockBatch(ctx context.Context, cond map[string]interface{},
+func (r *mysqlStockBatch) UpdateStockBatch(ctx context.Context, cond map[string]interface{},
 	data *stockbatchmodel.UpdateStockBatch) (*stockbatchmodel.StockBatch, error) {
 
-	db := s.db.Begin()
+	db := r.db.Begin()
 
 	if db.Error != nil {
 		return nil, common.ErrDB(db.Error)
