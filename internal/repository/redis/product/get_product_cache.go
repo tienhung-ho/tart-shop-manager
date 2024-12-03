@@ -44,3 +44,41 @@ func (r *rdbStorage) GetProduct(ctx context.Context, cond map[string]interface{}
 
 	return &product, nil
 }
+
+func (r *rdbStorage) GetPaging(ctx context.Context, key string) (*paggingcommon.Paging, error) {
+	// Lấy giá trị từ Redis
+	result, err := r.rdb.Get(ctx, key).Result()
+	if err != nil {
+		if err == redis.Nil {
+			return nil, errors.New("paging not found")
+		}
+		return nil, common.ErrDB(err)
+	}
+
+	// Unmarshal dữ liệu JSON thành struct `Paging`
+	var paging paggingcommon.Paging
+	if err := json.Unmarshal([]byte(result), &paging); err != nil {
+		return nil, common.ErrDB(err)
+	}
+
+	return &paging, nil
+}
+
+func (r *rdbStorage) GetFilter(ctx context.Context, key string) (*commonfilter.Filter, error) {
+	// Lấy giá trị từ Redis
+	result, err := r.rdb.Get(ctx, key).Result()
+	if err != nil {
+		if err == redis.Nil {
+			return nil, errors.New("filter not found")
+		}
+		return nil, common.ErrDB(err)
+	}
+
+	// Unmarshal dữ liệu JSON thành struct `Filter`
+	var filter commonfilter.Filter
+	if err := json.Unmarshal([]byte(result), &filter); err != nil {
+		return nil, common.ErrDB(err)
+	}
+
+	return &filter, nil
+}

@@ -1,4 +1,4 @@
-package ingredientcache
+package rolecache
 
 import (
 	"context"
