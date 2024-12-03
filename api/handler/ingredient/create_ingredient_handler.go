@@ -3,15 +3,17 @@ package ingredienthandler
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"net/http"
 	"tart-shop-manager/internal/common"
 	ingredientmodel "tart-shop-manager/internal/entity/dtos/sql/ingredient"
 	ingredientstorage "tart-shop-manager/internal/repository/mysql/ingredient"
+	ingredientcache "tart-shop-manager/internal/repository/redis/ingredient"
 	ingredientbusiness "tart-shop-manager/internal/service/ingredient"
 )
 
-func CreateIngredientHandler(db *gorm.DB) func(c *gin.Context) {
+func CreateIngredientHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 	return func(c *gin.Context) {
 
 		var data ingredientmodel.CreateIngredient
@@ -36,7 +38,8 @@ func CreateIngredientHandler(db *gorm.DB) func(c *gin.Context) {
 		}
 
 		store := ingredientstorage.NewMySQLIngredient(db)
-		biz := ingredientbusiness.NewCreateIngredientBiz(store)
+		cache := ingredientcache.NewRdbStorage(rdb)
+		biz := ingredientbusiness.NewCreateIngredientBiz(store, cache)
 
 		recordID, err := biz.CreateIngredient(c, &data)
 		if err != nil {
