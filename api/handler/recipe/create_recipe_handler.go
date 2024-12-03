@@ -2,6 +2,7 @@ package recipehandler
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"net/http"
 	"tart-shop-manager/internal/common"
@@ -9,10 +10,11 @@ import (
 	ingredientstorage "tart-shop-manager/internal/repository/mysql/ingredient"
 	recipestorage "tart-shop-manager/internal/repository/mysql/recipe"
 	recipeingredientstorage "tart-shop-manager/internal/repository/mysql/recipeIngredient"
+	recipecache "tart-shop-manager/internal/repository/redis/recipe"
 	recipebusiness "tart-shop-manager/internal/service/recipe"
 )
 
-func CreateRecipeHandler(db *gorm.DB) func(c *gin.Context) {
+func CreateRecipeHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 	return func(c *gin.Context) {
 
 		var data recipemodel.CreateRecipe
@@ -25,9 +27,10 @@ func CreateRecipeHandler(db *gorm.DB) func(c *gin.Context) {
 
 		store := recipestorage.NewMySQLRecipe(db)
 		ingredientStore := ingredientstorage.NewMySQLIngredient(db)
+		cache := recipecache.NewRdbStorage(rdb)
 		recipeIngredientStore := recipeingredientstorage.NewMySQLRecipeIngredient(db)
 
-		biz := recipebusiness.NewCreateRecipeBusiness(store, ingredientStore, recipeIngredientStore)
+		biz := recipebusiness.NewCreateRecipeBusiness(store, cache, ingredientStore, recipeIngredientStore)
 
 		recipeID, err := biz.CreateRecipe(c, &data)
 

@@ -6,6 +6,7 @@ import (
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
+	productmodel "tart-shop-manager/internal/entity/dtos/sql/product"
 	recipemodel "tart-shop-manager/internal/entity/dtos/sql/recipe"
 	recipeingredientmodel "tart-shop-manager/internal/entity/dtos/sql/recipe_ingredient"
 	databaseutil "tart-shop-manager/internal/util/database"
@@ -16,14 +17,19 @@ type CreateRecipeStorage interface {
 	Transaction(ctx context.Context, fn func(txCtx context.Context) error) error
 }
 
+type CreateRecipeCache interface {
+	DeleteListCache(ctx context.Context, entityName string) error
+}
+
 type createRecipeBusiness struct {
 	store                 CreateRecipeStorage
+	cache                 CreateRecipeCache
 	ingredientStore       ListItemIngredientStorage
 	recipeIngredientStore RecipeIngredientStorage
 }
 
-func NewCreateRecipeBusiness(store CreateRecipeStorage, ingredientStore ListItemIngredientStorage, recipeIngredientStore RecipeIngredientStorage) *createRecipeBusiness {
-	return &createRecipeBusiness{store, ingredientStore, recipeIngredientStore}
+func NewCreateRecipeBusiness(store CreateRecipeStorage, cache CreateRecipeCache, ingredientStore ListItemIngredientStorage, recipeIngredientStore RecipeIngredientStorage) *createRecipeBusiness {
+	return &createRecipeBusiness{store, cache, ingredientStore, recipeIngredientStore}
 }
 
 func (biz *createRecipeBusiness) CreateRecipe(ctx context.Context, data *recipemodel.CreateRecipe) (uint64, error) {
@@ -73,7 +79,7 @@ func (biz *createRecipeBusiness) CreateRecipe(ctx context.Context, data *recipem
 				RecipeID:     data.RecipeID,
 				IngredientID: ing.IngredientID,
 				Quantity:     ing.Quantity,
-				// Bạn có thể thêm các trường khác nếu cần
+				Unit:         ing.Unit,
 			})
 		}
 		if len(createRecipeIngredient) > 0 {
@@ -81,6 +87,14 @@ func (biz *createRecipeBusiness) CreateRecipe(ctx context.Context, data *recipem
 			if err != nil {
 				return common.ErrCannotCreateEntity("recipe ingredients", err)
 			}
+		}
+
+		if err := biz.cache.DeleteListCache(txCtx, recipemodel.EntityName); err != nil {
+			return common.ErrCannotDeleteEntity(recipemodel.EntityName, err)
+		}
+
+		if err := biz.cache.DeleteListCache(ctx, productmodel.EntityName); err != nil {
+			return common.ErrCannotDeleteEntity(recipemodel.EntityName, err)
 		}
 
 		return nil

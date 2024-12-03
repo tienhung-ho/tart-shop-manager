@@ -18,6 +18,7 @@ type DeleteRecipeStorage interface {
 
 type DeleteRecipeCache interface {
 	DeleteRecipe(ctx context.Context, morekeys ...string) error
+	DeleteListCache(ctx context.Context, entityName string) error
 }
 
 type deleteRecipeBusiness struct {
@@ -80,6 +81,14 @@ func (biz *deleteRecipeBusiness) DeleteRecipe(ctx context.Context, cond map[stri
 
 	if err := biz.cache.DeleteRecipe(ctx, key); err != nil {
 		return common.ErrCannotDeleteEntity(productmodel.EntityName, err)
+	}
+
+	if err := biz.cache.DeleteListCache(ctx, recipemodel.EntityName); err != nil {
+		return common.ErrCannotDeleteEntity(recipemodel.EntityName, err)
+	}
+
+	if err := biz.cache.DeleteListCache(ctx, productmodel.EntityName); err != nil {
+		return common.ErrCannotDeleteEntity(recipemodel.EntityName, err)
 	}
 
 	return nil
