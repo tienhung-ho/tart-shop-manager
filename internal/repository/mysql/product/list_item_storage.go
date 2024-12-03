@@ -30,6 +30,7 @@ func (r *mysqlProduct) ListItem(ctx context.Context, cond map[string]interface{}
 	if err := query.
 		Preload("Category").
 		Preload("Recipes").
+		Preload("Recipes.RecipeIngredients").
 		Preload("Images").
 		Find(&products).Error; err != nil {
 		return nil, err
@@ -57,7 +58,7 @@ func (r *mysqlProduct) buildQuery(db *gorm.DB, cond map[string]interface{}, filt
 		}
 
 		if filter.Status != "" {
-			db = db.Where("status IN ?", filter.Status)
+			db = db.Where("status = ?", filter.Status)
 		}
 
 		if filter.Search != "" {
@@ -82,7 +83,7 @@ func (r *mysqlProduct) buildQuery(db *gorm.DB, cond map[string]interface{}, filt
 
 func (r *mysqlProduct) addPaging(db *gorm.DB, paging *paggingcommon.Paging) (*gorm.DB, error) {
 	// Parse and validate the sort fields
-	sortFields, err := paging.ParseSortFields(paging.Sort, productmodel.AllowedSortFields)
+	sortFields, err := paging.ParseSortFields(paging.Sort, AllowedSortFields)
 	if err != nil {
 		return nil, common.NewErrorResponse(err, "Invalid sort parameters", err.Error(), "InvalidSort")
 	}
@@ -94,7 +95,7 @@ func (r *mysqlProduct) addPaging(db *gorm.DB, paging *paggingcommon.Paging) (*go
 		}
 	} else {
 		// Default sorting if no sort parameters are provided
-		db = db.Order("product_id desc")
+		db = db.Order("product_id asc")
 	}
 
 	// Apply pagination

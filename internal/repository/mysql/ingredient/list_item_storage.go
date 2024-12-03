@@ -53,7 +53,7 @@ func (s *mysqlIngredient) buildQuery(db *gorm.DB, cond map[string]interface{}, f
 	db = db.Where(cond)
 	if filter != nil {
 		if filter.Status != "" {
-			db = db.Where("status IN ?", filter.Status)
+			db = db.Where("status = ?", filter.Status)
 		}
 		if filter.Search != "" {
 			searchPattern := "%" + filter.Search + "%"

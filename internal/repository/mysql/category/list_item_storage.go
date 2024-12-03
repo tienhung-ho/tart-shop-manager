@@ -45,12 +45,8 @@ func (s *mysqlCategory) countRecord(db *gorm.DB, cond map[string]interface{}, pa
 
 	if names, ok := cond["names"]; ok {
 		db = db.Where("name IN ?", names)
-	} else {
-		db = db.Where(cond)
-		if filter != nil && filter.Status != "" {
-			db = db.Where("status = ?", filter.Status)
-		}
 	}
+
 	if err := db.Table(categorymodel.Category{}.TableName()).Count(&paging.Total).Error; err != nil {
 		return common.NewErrorResponse(err, "Error count items from database", err.Error(), "CouldNotCount")
 	}
@@ -60,13 +56,12 @@ func (s *mysqlCategory) countRecord(db *gorm.DB, cond map[string]interface{}, pa
 func (s *mysqlCategory) buildQuery(db *gorm.DB, cond map[string]interface{}, filter *commonfilter.Filter) *gorm.DB {
 	db = db.Where(cond)
 	if filter != nil {
-		if filter.Status != "" {
-			db = db.Where("status IN ?", filter.Status)
-		}
-
 		if filter.Search != "" {
 			searchPattern := "%" + filter.Search + "%"
-			db = db.Where("name LIKE ? OR description LIKE ?", searchPattern, searchPattern)
+			db = db.Where("name LIKE ?", searchPattern)
+		}
+		if filter.Status != "" {
+			db = db.Where("status = ?", filter.Status)
 		}
 
 	}
@@ -87,7 +82,7 @@ func (s *mysqlCategory) addPaging(db *gorm.DB, paging *paggingcommon.Paging) (*g
 		}
 	} else {
 		// Default sorting if no sort parameters are provided
-		db = db.Order("product_id desc")
+		db = db.Order("category_id desc")
 	}
 
 	// Apply pagination
