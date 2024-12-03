@@ -3,18 +3,20 @@ package accounthandler
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"net/http"
 	"tart-shop-manager/internal/common"
 	"tart-shop-manager/internal/entity/dtos/sql/account"
 	"tart-shop-manager/internal/repository/mysql/account"
 	rolestorage "tart-shop-manager/internal/repository/mysql/role"
+	accountrdbstorage "tart-shop-manager/internal/repository/redis/account"
 	accountbusiness "tart-shop-manager/internal/service/account"
 	casbinutil "tart-shop-manager/internal/util/policies"
 	validation "tart-shop-manager/internal/validate"
 )
 
-func CreateAccountHandler(db *gorm.DB) func(c *gin.Context) {
+func CreateAccountHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 	return func(c *gin.Context) {
 
 		var data accountmodel.CreateAccount
@@ -47,9 +49,10 @@ func CreateAccountHandler(db *gorm.DB) func(c *gin.Context) {
 		enforcer := casbinutil.GetEnforcer()
 
 		store := accountstorage.NewMySQLAccount(db)
+		cache := accountrdbstorage.NewRdbStorage(rdb)
 		roleStore := rolestorage.NewMySQLRole(db)
 		auth := casbinutil.NewCasbinAuthorization(enforcer)
-		biz := accountbusiness.NewCreateAccountbiz(store, roleStore, auth)
+		biz := accountbusiness.NewCreateAccountbiz(store, cache, roleStore, auth)
 
 		recordId, err := biz.CreateAccount(c, &data)
 

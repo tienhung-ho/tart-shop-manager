@@ -33,9 +33,11 @@ func UpdateAccountHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 		var data accountmodel.UpdateAccount
 
 		if err := c.ShouldBindJSON(&data); err != nil {
+			log.Println(err.Error())
 			c.JSON(http.StatusBadRequest, common.ErrCanNotBindEntity("Account", err))
 			return
 		}
+		log.Print(data.Password, data.RePassword)
 
 		validate := validator.New()
 
@@ -47,6 +49,7 @@ func UpdateAccountHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 		if err := validate.Struct(data); err != nil {
 			if validationErrors, ok := err.(validator.ValidationErrors); ok {
 				//appErr := common.ErrValidation(validationErrors)
+				log.Print(validationErrors)
 				c.JSON(http.StatusBadRequest, common.ErrValidation(validationErrors))
 				return
 			}
@@ -84,7 +87,7 @@ func UpdateAccountHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, err)
 			return
 		}
-
+		updatedRecord.Password = ""
 		c.JSON(http.StatusOK, common.NewDataResponse(updatedRecord, "update account successfully"))
 
 	}
