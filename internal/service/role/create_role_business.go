@@ -14,6 +14,10 @@ type CreateRoleStorage interface {
 	CreateRole(ctx context.Context, data *rolemodel.CreateRole, morekeys ...string) (uint, error)
 }
 
+type CreateRoleCache interface {
+	DeleteListCache(ctx context.Context, entityName string) error
+}
+
 type ListPermissionStorage interface {
 	ListItem(ctx context.Context, cond map[string]interface{}, paging *paggingcommon.Paging, filter *commonfilter.Filter, morekeys ...string) ([]permissionmodel.Permission, error)
 }
@@ -21,11 +25,12 @@ type ListPermissionStorage interface {
 type createRoleBusiness struct {
 	store    CreateRoleStorage
 	perStore ListPermissionStorage
+	cache    CreateRoleCache
 	auth     casbinbusiness.Authorization
 }
 
-func NewCreateRoleBiz(store CreateRoleStorage, perStore ListPermissionStorage, auth casbinbusiness.Authorization) *createRoleBusiness {
-	return &createRoleBusiness{store: store, perStore: perStore, auth: auth}
+func NewCreateRoleBiz(store CreateRoleStorage, perStore ListPermissionStorage, cache CreateRoleCache, auth casbinbusiness.Authorization) *createRoleBusiness {
+	return &createRoleBusiness{store: store, perStore: perStore, cache: cache, auth: auth}
 }
 
 func (biz *createRoleBusiness) CreateRole(ctx context.Context, data *rolemodel.CreateRole, morekeys ...string) (uint, error) {
@@ -78,6 +83,10 @@ func (biz *createRoleBusiness) CreateRole(ctx context.Context, data *rolemodel.C
 	err = biz.auth.AddPoliciesForRole(role.Name, role.Permissions)
 	if err != nil {
 		return 0, err
+	}
+
+	if err := biz.cache.DeleteListCache(ctx, rolemodel.EntityName); err != nil {
+		return 0, common.ErrCannotCreateEntity(rolemodel.EntityName, err)
 	}
 
 	return recordId, nil

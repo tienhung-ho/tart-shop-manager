@@ -2,6 +2,7 @@ package rolehandler
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"log"
 	"net/http"
@@ -11,11 +12,12 @@ import (
 	rolemodel "tart-shop-manager/internal/entity/dtos/sql/role"
 	permissionstorage "tart-shop-manager/internal/repository/mysql/permission"
 	rolestorage "tart-shop-manager/internal/repository/mysql/role"
+	rolecache "tart-shop-manager/internal/repository/redis/role"
 	rolebusiness "tart-shop-manager/internal/service/role"
 	casbinutil "tart-shop-manager/internal/util/policies"
 )
 
-func CreateRoleHandler(db *gorm.DB) func(c *gin.Context) {
+func CreateRoleHandler(db *gorm.DB, rdb *redis.Client) func(c *gin.Context) {
 	return func(c *gin.Context) {
 
 		var data rolemodel.CreateRole
@@ -44,7 +46,8 @@ func CreateRoleHandler(db *gorm.DB) func(c *gin.Context) {
 
 		store := rolestorage.NewMySQLRole(db)
 		perStore := permissionstorage.NewMySQLPermission(db)
-		biz := rolebusiness.NewCreateRoleBiz(store, perStore, auth)
+		cache := rolecache.NewRdbStorage(rdb)
+		biz := rolebusiness.NewCreateRoleBiz(store, perStore, cache, auth)
 
 		recordId, err := biz.CreateRole(c, &data)
 

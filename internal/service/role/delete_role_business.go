@@ -17,6 +17,7 @@ type DeleteRoleStorage interface {
 
 type DeleteRoleCache interface {
 	DeleteRole(ctx context.Context, morekeys ...string) error
+	DeleteListCache(ctx context.Context, entityName string) error
 }
 
 type deleteRoleBusiness struct {
@@ -57,6 +58,10 @@ func (biz *deleteRoleBusiness) DeleteRole(ctx context.Context, cond map[string]i
 
 	if err := biz.cache.DeleteRole(ctx, key); err != nil {
 		return common.ErrCannotUpdateEntity(accountmodel.EntityName, err)
+	}
+
+	if err := biz.cache.DeleteListCache(ctx, rolemodel.EntityName); err != nil {
+		return common.ErrCannotCreateEntity(rolemodel.EntityName, err)
 	}
 
 	return nil

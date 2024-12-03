@@ -3,11 +3,12 @@ package rolebusiness
 import (
 	"context"
 	"errors"
+	"fmt"
 	"gorm.io/gorm"
+	"log"
 	"tart-shop-manager/internal/common"
 	commonfilter "tart-shop-manager/internal/common/filter"
 	paggingcommon "tart-shop-manager/internal/common/paging"
-	accountmodel "tart-shop-manager/internal/entity/dtos/sql/account"
 	rolemodel "tart-shop-manager/internal/entity/dtos/sql/role"
 	cacheutil "tart-shop-manager/internal/util/cache"
 )
@@ -19,6 +20,8 @@ type ListItemRoleStorage interface {
 type ListItemRoleCache interface {
 	SaveRole(ctx context.Context, data interface{}, morekeys ...string) error
 	ListItem(ctx context.Context, key string) ([]rolemodel.Role, error)
+	SavePaging(ctx context.Context, paging *paggingcommon.Paging, morekeys ...string) error
+	GetPaging(ctx context.Context, key string) (*paggingcommon.Paging, error)
 }
 
 type listItemRoleBusiness struct {
@@ -37,24 +40,36 @@ func (biz *listItemRoleBusiness) ListItemRole(ctx context.Context, cond map[stri
 	filterCopy := *filter
 
 	// Generate cache key
-	key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
+	baseKey, err := cacheutil.GenerateKey(cacheutil.CacheParams{
 		EntityName: rolemodel.EntityName,
 		Cond:       cond,
 		Paging:     pagingCopy,
 		Filter:     filterCopy,
 		MoreKeys:   morekeys,
+		KeyType:    fmt.Sprintf("List:%s:", rolemodel.EntityName),
 	})
+
+	roleKey := baseKey
+	pagingKey := baseKey + ":paging"
 	if err != nil {
 		return nil, common.ErrCannotGenerateKey(rolemodel.EntityName, err)
 	}
 
-	records, err := biz.cache.ListItem(ctx, key)
+	records, err := biz.cache.ListItem(ctx, roleKey)
 
 	if err != nil {
+		log.Print(err)
 		return nil, common.ErrCannotListEntity(rolemodel.EntityName, err)
 	}
 
 	if len(records) != 0 {
+		cachedPaging, err := biz.cache.GetPaging(ctx, pagingKey)
+		if err == nil {
+			paging.Page = cachedPaging.Page
+			paging.Total = cachedPaging.Total
+			paging.Limit = cachedPaging.Limit
+			paging.Sort = cachedPaging.Sort
+		}
 		return records, nil
 	}
 
@@ -62,28 +77,20 @@ func (biz *listItemRoleBusiness) ListItemRole(ctx context.Context, cond map[stri
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 
-			return nil, common.ErrNotFoundEntity(accountmodel.EntityName, err)
+			return nil, common.ErrNotFoundEntity(rolemodel.EntityName, err)
 		}
-
-		return nil, common.ErrCannotListEntity(accountmodel.EntityName, err)
+		//log.Print(err)
+		return nil, common.ErrCannotListEntity(rolemodel.EntityName, err)
 	}
 
 	if len(records) != 0 {
 
-		// Generate cache key
-		key, err := cacheutil.GenerateKey(cacheutil.CacheParams{
-			EntityName: rolemodel.EntityName,
-			Cond:       cond,
-			Paging:     *paging,
-			Filter:     *filter,
-			MoreKeys:   morekeys,
-		})
-		if err != nil {
-			return nil, common.ErrCannotGenerateKey(rolemodel.EntityName, err)
+		if err := biz.cache.SaveRole(ctx, records, roleKey); err != nil {
+			return nil, common.ErrCannotUpdateEntity(rolemodel.EntityName, err)
 		}
 
-		if err := biz.cache.SaveRole(ctx, records, key); err != nil {
-			return nil, common.ErrCannotUpdateEntity(accountmodel.EntityName, err)
+		if err := biz.cache.SavePaging(ctx, paging, pagingKey); err != nil {
+			return nil, common.ErrCannotCreateEntity(rolemodel.EntityName, err)
 		}
 
 	}
